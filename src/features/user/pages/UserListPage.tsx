@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { useDataTable } from '@/hooks/useDataTable';
+import { useToast } from '@/hooks/useToast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { Filter, Plus } from 'lucide-react';
@@ -10,8 +12,6 @@ import { UserFilters } from '../components/UserFilters';
 import { USER_SEARCHABLE_FIELDS as searchFields } from '../constants/user.constants';
 import { getUserColumns } from '../constants/userHeaderMap';
 import { userService } from '../services/user.service';
-import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/hooks/useToast';
 
 export function UserListPage() {
   const {
@@ -37,7 +37,8 @@ export function UserListPage() {
       searchWord, 
       searchFields, 
       filters,
-      sort
+      sort,
+      all: true
     }),
     placeholderData: (previousData) => previousData,
   });
