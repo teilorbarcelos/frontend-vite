@@ -9,12 +9,13 @@ export interface Role {
 }
 
 export const roleService = {
-  getRoles: async (page = 0, size = 15, searchWord?: string, searchFields?: string) => {
+  getRoles: async (page = 0, size = 15, searchWord?: string, searchFields?: string, filters: Record<string, unknown> = {}) => {
     const res = await api.get('/v1/role', { 
       params: { 
         page, 
         size,
-        ...(searchWord ? { searchWord, searchFields } : {})
+        ...(searchWord ? { searchWord, searchFields } : {}),
+        ...filters
       } 
     });
     return res.data;

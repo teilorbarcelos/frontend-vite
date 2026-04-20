@@ -5,22 +5,25 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { USER_SEARCHABLE_FIELDS } from '../constants/user.constants';
 import { getUserColumns } from '../constants/userHeaderMap';
-import type { User } from '../services/user.service';
 import { userService } from '../services/user.service';
+import { UserFilters } from '../components/UserFilters';
+
+import { Filter } from 'lucide-react';
 
 export function UserListPage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
   const [searchWord, setSearchWord] = useState('');
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const searchableFields: (keyof User | string)[] = ['name', 'email', 'Role.name'];
-
   const { data, isError, isFetching } = useQuery({
-    queryKey: ['users', page, size, searchWord],
-    queryFn: () => userService.getUsers(page, size, searchWord, searchableFields.join(',')),
+    queryKey: ['users', page, size, searchWord, filters],
+    queryFn: () => userService.getUsers(page, size, searchWord, USER_SEARCHABLE_FIELDS.join(','), filters),
     placeholderData: (previousData) => previousData,
   });
 
@@ -60,12 +63,35 @@ export function UserListPage() {
             onSearch={handleSearch} 
             className="w-80"
           />
+          <Button 
+            variant="secondary" 
+            onClick={() => setIsFilterOpen(true)}
+            className={Object.keys(filters).length > 0 ? 'border-indigo-500 text-indigo-600 bg-indigo-50' : ''}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+            {Object.keys(filters).length > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 text-xs bg-indigo-600 text-white rounded-full">
+                {Object.keys(filters).length}
+              </span>
+            )}
+          </Button>
           <Button onClick={() => navigate('/users/new')}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Usuário
           </Button>
         </div>
       </div>
+
+      <UserFilters
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onFilter={(newFilters) => {
+          setFilters(newFilters);
+          setPage(0);
+        }}
+        initialValues={filters}
+      />
 
       <DataTable
         data={data?.items || []}

@@ -2,17 +2,20 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Filter, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROLE_SEARCHABLE_FIELDS } from '../constants/role.constants';
 import { getRoleColumns } from '../constants/roleHeaderMap';
-import type { Role } from '../services/role.service';
+import { RoleFilters } from '../components/RoleFilters';
 import { roleService } from '../services/role.service';
 
 export function RoleListPage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
   const [searchWord, setSearchWord] = useState('');
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -21,11 +24,9 @@ export function RoleListPage() {
     setPage(0);
   }, []);
 
-  const searchableFields: (keyof Role)[] = ['name'];
-
   const { data, isError, isFetching } = useQuery({
-    queryKey: ['roles', page, size, searchWord],
-    queryFn: () => roleService.getRoles(page, size, searchWord, searchableFields.join(',')),
+    queryKey: ['roles', page, size, searchWord, filters],
+    queryFn: () => roleService.getRoles(page, size, searchWord, ROLE_SEARCHABLE_FIELDS.join(','), filters),
     placeholderData: (prev) => prev,
   });
 
@@ -60,12 +61,35 @@ export function RoleListPage() {
             onSearch={handleSearch} 
             className="w-80"
           />
+          <Button 
+            variant="secondary" 
+            onClick={() => setIsFilterOpen(true)}
+            className={Object.keys(filters).length > 0 ? 'border-indigo-500 text-indigo-600 bg-indigo-50' : ''}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+            {Object.keys(filters).length > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 text-xs bg-indigo-600 text-white rounded-full">
+                {Object.keys(filters).length}
+              </span>
+            )}
+          </Button>
           <Button onClick={() => navigate('/roles/new')}>
             <Plus className="w-4 h-4 mr-2" />
             Nova Função
           </Button>
         </div>
       </div>
+
+      <RoleFilters
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onFilter={(newFilters) => {
+          setFilters(newFilters);
+          setPage(0);
+        }}
+        initialValues={filters}
+      />
 
       <DataTable
         data={data?.items || []}

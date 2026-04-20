@@ -12,12 +12,13 @@ export interface User {
 }
 
 export const userService = {
-  getUsers: async (page = 0, size = 15, searchWord?: string, searchFields?: string) => {
+  getUsers: async (page = 0, size = 15, searchWord?: string, searchFields?: string, filters: Record<string, unknown> = {}) => {
     const res = await api.get('/v1/user', { 
       params: { 
         page, 
         size,
-        ...(searchWord ? { searchWord, searchFields } : {})
+        ...(searchWord ? { searchWord, searchFields } : {}),
+        ...filters
       } 
     });
     return res.data;

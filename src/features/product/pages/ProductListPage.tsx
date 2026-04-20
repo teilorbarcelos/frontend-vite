@@ -2,17 +2,20 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Filter, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ProductFilters } from '../components/ProductFilters';
+import { PRODUCT_SEARCHABLE_FIELDS } from '../constants/product.constants';
 import { getProductColumns } from '../constants/productHeaderMap';
-import type { Product } from '../services/product.service';
 import { productService } from '../services/product.service';
 
 export function ProductListPage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
   const [searchWord, setSearchWord] = useState('');
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -21,11 +24,9 @@ export function ProductListPage() {
     setPage(0);
   }, []);
 
-  const searchableFields: (keyof Product)[] = ['name', 'sku', 'category'];
-
   const { data, isError, isFetching } = useQuery({
-    queryKey: ['products', page, size, searchWord],
-    queryFn: () => productService.getProducts(page, size, searchWord, searchableFields.join(',')),
+    queryKey: ['products', page, size, searchWord, filters],
+    queryFn: () => productService.getProducts(page, size, searchWord, PRODUCT_SEARCHABLE_FIELDS.join(','), filters),
     placeholderData: (prev) => prev,
   });
 
@@ -60,12 +61,35 @@ export function ProductListPage() {
             onSearch={handleSearch} 
             className="w-80"
           />
+          <Button 
+            variant="secondary" 
+            onClick={() => setIsFilterOpen(true)}
+            className={Object.keys(filters).length > 0 ? 'border-indigo-500 text-indigo-600 bg-indigo-50' : ''}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+            {Object.keys(filters).length > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 text-xs bg-indigo-600 text-white rounded-full">
+                {Object.keys(filters).length}
+              </span>
+            )}
+          </Button>
           <Button onClick={() => navigate('/products/new')}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Produto
           </Button>
         </div>
       </div>
+
+      <ProductFilters
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onFilter={(newFilters) => {
+          setFilters(newFilters);
+          setPage(0);
+        }}
+        initialValues={filters}
+      />
 
       <DataTable
         data={data?.items || []}
