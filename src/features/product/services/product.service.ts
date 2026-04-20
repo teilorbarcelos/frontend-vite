@@ -19,9 +19,10 @@ export const productService = {
     searchFields?: string[];
     filters?: Record<string, unknown>;
     sort?: { orderBy?: string; orderDirection?: string };
+    all?: boolean;
   }) => {
-    const { page = 0, size = 25, searchWord, searchFields, filters = {}, sort } = options;
-    const res = await api.get('/v1/product', { 
+    const { page = 0, size = 25, searchWord, searchFields, filters = {}, sort, all } = options;
+    const res = await api.get(`/v1/product/${all ? 'all' : ''}`, { 
       params: { 
         page, 
         size,

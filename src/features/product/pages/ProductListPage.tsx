@@ -37,7 +37,8 @@ export function ProductListPage() {
       searchWord, 
       searchFields, 
       filters,
-      sort
+      sort,
+      all: true
     }),
     placeholderData: (prev) => prev,
   });

@@ -4,7 +4,6 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Helper to capitalize first letter
 Handlebars.registerHelper('capitalize', (str) => {
   if (typeof str !== 'string' || !str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -34,7 +33,6 @@ async function main() {
     process.exit(1);
   }
 
-  // Create directories
   fs.mkdirSync(targetDir, { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'services'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'pages'), { recursive: true });

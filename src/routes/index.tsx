@@ -1,14 +1,13 @@
-import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
-import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { AdminLayout } from '@/features/admin/AdminLayout';
-import { RoleListPage } from '@/features/role/pages/RoleListPage';
-import { RoleFormPage } from '@/features/role/pages/RoleFormPage';
-import { UserListPage } from '@/features/user/pages/UserListPage';
-import { UserFormPage } from '@/features/user/pages/UserFormPage';
-import { ProductListPage } from '@/features/product/pages/ProductListPage';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ProductFormPage } from '@/features/product/pages/ProductFormPage';
+import { ProductListPage } from '@/features/product/pages/ProductListPage';
+import { RoleFormPage } from '@/features/role/pages/RoleFormPage';
+import { RoleListPage } from '@/features/role/pages/RoleListPage';
+import { UserFormPage } from '@/features/user/pages/UserFormPage';
+import { UserListPage } from '@/features/user/pages/UserListPage';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 
-// Proteção de rotas simples
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
   if (!token) {

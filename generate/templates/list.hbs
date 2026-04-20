@@ -1,105 +1,145 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Edit2, Filter, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
-import { {{nameLower}}Service } from '../services/{{nameLower}}.service';
+
 import { Button } from '@/components/ui/Button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { Pagination } from '@/components/ui/Pagination';
+import { DataTable } from '@/components/ui/DataTable/DataTable';
+import { DataTableActions } from '@/components/ui/DataTable/DataTableActions';
+import type { DataTableHeader } from '@/components/ui/DataTable/types';
+import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { useDataTable } from '@/hooks/useDataTable';
+import { useToast } from '@/hooks/useToast';
+import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
+
+const headerMap: DataTableHeader<{{nameCapitalized}}>[] = [
+  { keyItem: 'name', label: 'Nome', sortable: true },
+  { 
+    keyItem: 'active', 
+    label: 'Status', 
+    sortable: true,
+    render: (value) => (
+      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+        value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+      }`}>
+        {value ? 'Ativo' : 'Inativo'}
+      </span>
+    )
+  },
+  { keyItem: 'actions', label: 'Ações', align: 'right' },
+];
+
+const filterFields: FilterField[] = [
+  { name: 'name', label: 'Nome', type: 'text', placeholder: 'Filtrar por nome' },
+  { 
+    name: 'active', 
+    label: 'Status', 
+    type: 'select', 
+    options: [
+      { label: 'Ativos', value: 'true' },
+      { label: 'Inativos', value: 'false' },
+    ] 
+  },
+  { name: 'created_at', label: 'Data de Criação', type: 'dateRange' },
+];
 
 export function {{nameCapitalized}}ListPage() {
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { success, error: showError } = useToast();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['{{nameLower}}s', page, size],
-    queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}s(page, size),
+  const {
+    queryParams,
+    handleSearch,
+    handleFilter,
+    tableProps
+  } = useDataTable({
+    defaultSort: { orderBy: 'name', orderDirection: 'asc' }
   });
 
-  const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) => {{nameLower}}Service.toggleStatus(id, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
-    },
+  const { data, isLoading } = useQuery({
+    queryKey: ['{{nameLower}}s', queryParams],
+    queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}s(queryParams),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => {{nameLower}}Service.delete{{nameCapitalized}}(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
+      success('Registro excluído com sucesso!');
     },
+    onError: () => {
+      showError('Erro ao excluir o registro.');
+    }
   });
 
-  if (isLoading) return <div className="p-8 text-center text-gray-500">Loading {{nameLower}}s...</div>;
-  if (isError) return <div className="p-8 text-center text-red-500">Error loading {{nameLower}}s</div>;
+  const actions = (item: {{nameCapitalized}}) => [
+    {
+      label: 'Editar',
+      icon: <Edit2 className="w-4 h-4" />,
+      onClick: () => navigate(`/{{nameLower}}s/${item.id}`),
+    },
+    {
+      label: 'Excluir',
+      icon: <Trash2 className="w-4 h-4" />,
+      onClick: () => {
+        if (confirm('Deseja realmente excluir este registro?')) {
+          deleteMutation.mutate(item.id);
+        }
+      },
+      variant: 'danger' as const,
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{{nameCapitalized}}s</h1>
-        <Button onClick={() => navigate('/{{nameLower}}s/new')}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{{nameCapitalized}}s</h1>
+          <p className="text-sm text-gray-500">Gerencie os registros do sistema</p>
+        </div>
+        <Button onClick={() => navigate('/{{nameLower}}s/new')} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
-          New {{nameCapitalized}}
+          Novo Registro
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data?.items?.map((item: any) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-medium text-gray-900">{item.name}</TableCell>
-              <TableCell>
-                <button
-                  onClick={() => toggleStatusMutation.mutate({ id: item.id, active: !item.active })}
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
-                    item.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {item.active ? 'Active' : 'Inactive'}
-                </button>
-              </TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button variant="ghost" size="sm" onClick={() => navigate(`/{{nameLower}}s/${item.id}`)}>
-                  <Edit2 className="w-4 h-4 text-blue-600" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => {
-                  if (confirm('Are you sure you want to delete this {{nameLower}}?')) {
-                    deleteMutation.mutate(item.id);
-                  }
-                }}>
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-          {!data?.items?.length && (
-            <TableRow>
-              <TableCell colSpan={3} className="h-24 text-center text-gray-500">
-                No {{nameLower}}s found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      {data?.total > 0 && (
-        <Pagination
-          page={page}
-          total={data.total}
-          size={size}
-          onPageChange={setPage}
-          onSizeChange={setSize}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+        <SearchInput
+          onSearch={handleSearch}
+          placeholder="Pesquisar..."
+          className="sm:max-w-xs"
         />
-      )}
+        <Button
+          variant="outline"
+          onClick={() => setIsFilterOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Filter className="w-4 h-4" />
+          Filtros
+        </Button>
+      </div>
+
+      <DataTable
+        {...tableProps}
+        data={data?.items || []}
+        headerMap={headerMap}
+        isLoading={isLoading}
+        totalItems={data?.total || 0}
+        renderActions={(item) => (
+          <DataTableActions actions={actions(item)} />
+        )}
+      />
+
+      <FilterDrawer
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        fields={filterFields}
+        onFilter={handleFilter}
+        initialValues={queryParams}
+      />
     </div>
   );
 }
