@@ -1,0 +1,34 @@
+import { api } from '@/lib/axios';
+
+export interface {{nameCapitalized}} {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+export const {{nameLower}}Service = {
+  get{{nameCapitalized}}s: async (page = 0, size = 15) => {
+    const res = await api.get('/v1/{{nameLower}}', { params: { page, size } });
+    return res.data;
+  },
+  get{{nameCapitalized}}: async (id: string) => {
+    const res = await api.get(`/v1/{{nameLower}}/${id}`);
+    return res.data;
+  },
+  create{{nameCapitalized}}: async (data: Omit<{{nameCapitalized}}, 'id' | 'active'>) => {
+    const res = await api.post('/v1/{{nameLower}}', data);
+    return res.data;
+  },
+  update{{nameCapitalized}}: async (id: string, data: Partial<{{nameCapitalized}}>) => {
+    const res = await api.put(`/v1/{{nameLower}}/${id}`, data);
+    return res.data;
+  },
+  delete{{nameCapitalized}}: async (id: string) => {
+    const res = await api.delete(`/v1/{{nameLower}}/${id}`);
+    return res.data;
+  },
+  toggleStatus: async (id: string, active: boolean) => {
+    const res = await api.patch(`/v1/{{nameLower}}/${id}/status`, { active });
+    return res.data;
+  }
+};
