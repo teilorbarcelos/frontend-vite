@@ -31,7 +31,7 @@ export const getRoleColumns = (
         id={id as string} 
         onEdit={onEdit} 
         onDelete={onDelete}
-        deleteMessage="Tem certeza que deseja excluir esta função?"
+        deleteMessage="Tem certeza que deseja excluir esta role?"
       />
     ),
   },

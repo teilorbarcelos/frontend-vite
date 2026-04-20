@@ -112,15 +112,11 @@ export function ProductListPage() {
       />
 
       <DataTable
+        {...dataTableProps}
         data={data?.items || []}
         headerMap={columns}
         isLoading={isFetching}
-        {...dataTableProps}
-        paginationProps={{
-          ...dataTableProps.paginationProps,
-          totalPages: data?.total ? Math.ceil(data.total / size) : 0,
-          totalItems: data?.total,
-        }}
+        totalItems={data?.total || 0}
       />
     </div>
   );

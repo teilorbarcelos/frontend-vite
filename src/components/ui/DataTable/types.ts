@@ -45,12 +45,13 @@ export interface DataTableProps<T> {
   className?: string;
   isLoading?: boolean;
   paginationProps?: PaginationProps;
+  totalItems?: number;
   sorting?: DataTableSort;
 }
 
 export interface PaginationProps {
   currentPage: number;
-  totalPages: number;
+  totalPages?: number;
   onPageChange: (page: number) => void;
   pageSize?: number;
   totalItems?: number;

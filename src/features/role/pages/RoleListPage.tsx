@@ -48,7 +48,7 @@ export function RoleListPage() {
     mutationFn: ({ id, active }: { id: string; active: boolean }) => roleService.toggleStatus(id, active),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      success('Status da função atualizado!');
+      success('Status da role atualizado!');
     },
     onError: (err: AxiosError<{ message?: string }>) => {
       toastError(err.response?.data?.message || 'Erro ao atualizar status.');
@@ -59,10 +59,10 @@ export function RoleListPage() {
     mutationFn: (id: string) => roleService.deleteRole(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      success('Função excluída com sucesso!');
+      success('Role excluída com sucesso!');
     },
     onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao excluir função.');
+      toastError(err.response?.data?.message || 'Erro ao excluir role.');
     }
   });
 
@@ -72,12 +72,12 @@ export function RoleListPage() {
     (id) => deleteMutation.mutate(id)
   );
 
-  if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar funções</div>;
+  if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar roles</div>;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-6 shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Funções</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Roles</h1>
         <div className="flex items-center space-x-4">
           <SearchInput 
             onSearch={handleSearch} 
@@ -98,7 +98,7 @@ export function RoleListPage() {
           </Button>
           <Button onClick={() => navigate('/roles/new')}>
             <Plus className="w-4 h-4 mr-2" />
-            Nova Função
+            Nova Role
           </Button>
         </div>
       </div>
@@ -111,15 +111,11 @@ export function RoleListPage() {
       />
 
       <DataTable
+        {...dataTableProps}
         data={data?.items || []}
         headerMap={columns}
         isLoading={isFetching}
-        {...dataTableProps}
-        paginationProps={{
-          ...dataTableProps.paginationProps,
-          totalPages: data?.total ? Math.ceil(data.total / size) : 0,
-          totalItems: data?.total,
-        }}
+        totalItems={data?.total || 0}
       />
     </div>
   );

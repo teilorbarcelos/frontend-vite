@@ -19,7 +19,7 @@ const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 15, 25, 50, 100];
 
 export function Pagination({
   currentPage,
-  totalPages,
+  totalPages = 0,
   onPageChange,
   pageSize,
   totalItems,

@@ -17,7 +17,8 @@ export function DataTable<T>({
   className,
   paginationProps,
   isLoading,
-  sorting
+  sorting,
+  totalItems
 }: DataTableProps<T>) {
   const handleSort = (key: string) => {
     if (!sorting?.onChange) return;
@@ -124,7 +125,13 @@ export function DataTable<T>({
           </Table>
         </div>
         {paginationProps && (
-          <Pagination {...paginationProps} />
+          <Pagination 
+            {...paginationProps} 
+            totalItems={totalItems ?? paginationProps.totalItems}
+            totalPages={totalItems && paginationProps.pageSize 
+              ? Math.ceil(totalItems / paginationProps.pageSize) 
+              : (paginationProps.totalPages || 0)}
+          />
         )}
       </div>
     </TooltipProvider>

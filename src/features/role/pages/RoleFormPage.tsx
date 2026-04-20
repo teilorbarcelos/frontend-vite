@@ -48,7 +48,7 @@ export function RoleFormPage() {
 
   const mutation = useMutation({
     mutationFn: (data: RoleForm) => {
-      showLoading('Salvando função...');
+      showLoading('Salvando role...');
       if (isEditing) {
         return roleService.updateRole(id as string, data);
       }
@@ -57,12 +57,12 @@ export function RoleFormPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       hideLoading();
-      success(isEditing ? 'Função atualizada com sucesso!' : 'Função criada com sucesso!');
+      success(isEditing ? 'Role atualizada com sucesso!' : 'Role criada com sucesso!');
       navigate('/roles');
     },
     onError: (err: AxiosError<{ message?: string }>) => {
       hideLoading();
-      toastError(err.response?.data?.message || 'Erro ao salvar função. Tente novamente.');
+      toastError(err.response?.data?.message || 'Erro ao salvar role. Tente novamente.');
     }
   });
 

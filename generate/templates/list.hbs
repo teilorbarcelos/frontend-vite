@@ -1,33 +1,49 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Filter, Plus, Trash2 } from 'lucide-react';
+import { Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
-import { DataTable } from '@/components/ui/DataTable/DataTable';
-import { DataTableActions } from '@/components/ui/DataTable/DataTableActions';
-import type { DataTableHeader } from '@/components/ui/DataTable/types';
+import { DataTable, DataTableActions, type HeaderMapItem } from '@/components/ui/DataTable';
 import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useDataTable } from '@/hooks/useDataTable';
 import { useToast } from '@/hooks/useToast';
 import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
 
-const headerMap: DataTableHeader<{{nameCapitalized}}>[] = [
-  { keyItem: 'name', label: 'Nome', sortable: true },
-  { 
-    keyItem: 'active', 
-    label: 'Status', 
+export const get{{nameCapitalized}}Columns = (
+  onToggleStatus: (id: string, active: boolean) => void,
+  onEdit: (id: string) => void,
+  onDelete: (id: string) => void
+): HeaderMapItem<{{nameCapitalized}}>[] => [
+  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
+  {
+    title: 'Status',
+    keyItem: 'active',
     sortable: true,
-    render: (value) => (
-      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-        value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-      }`}>
-        {value ? 'Ativo' : 'Inativo'}
-      </span>
-    )
+    parseItem: (active, item) => (
+      <button
+        onClick={() => onToggleStatus(item.id, !item.active)}
+        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
+          active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}
+      >
+        {active ? 'Ativo' : 'Inativo'}
+      </button>
+    ),
   },
-  { keyItem: 'actions', label: 'Ações', align: 'right' },
+  {
+    title: '',
+    keyItem: 'id',
+    parseItem: (id) => (
+      <DataTableActions 
+        id={id as string} 
+        onEdit={onEdit} 
+        onDelete={onDelete}
+        deleteMessage="Tem certeza que deseja excluir este registro?"
+      />
+    ),
+  },
 ];
 
 const filterFields: FilterField[] = [
@@ -51,7 +67,11 @@ export function {{nameCapitalized}}ListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const {
-    queryParams,
+    page,
+    size,
+    searchWord,
+    filters,
+    sort,
     handleSearch,
     handleFilter,
     tableProps
@@ -59,9 +79,26 @@ export function {{nameCapitalized}}ListPage() {
     defaultSort: { orderBy: 'name', orderDirection: 'asc' }
   });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['{{nameLower}}s', queryParams],
-    queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}s(queryParams),
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['{{nameLower}}s', page, size, searchWord, filters, sort],
+    queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}s({
+      page,
+      size,
+      searchWord,
+      filters,
+      sort
+    }),
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) => {{nameLower}}Service.toggleStatus(id, active),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
+      success('Status atualizado com sucesso!');
+    },
+    onError: () => {
+      showError('Erro ao atualizar status.');
+    }
   });
 
   const deleteMutation = useMutation({
@@ -75,27 +112,15 @@ export function {{nameCapitalized}}ListPage() {
     }
   });
 
-  const actions = (item: {{nameCapitalized}}) => [
-    {
-      label: 'Editar',
-      icon: <Edit2 className="w-4 h-4" />,
-      onClick: () => navigate(`/{{nameLower}}s/${item.id}`),
-    },
-    {
-      label: 'Excluir',
-      icon: <Trash2 className="w-4 h-4" />,
-      onClick: () => {
-        if (confirm('Deseja realmente excluir este registro?')) {
-          deleteMutation.mutate(item.id);
-        }
-      },
-      variant: 'danger' as const,
-    },
-  ];
+  const columns = get{{nameCapitalized}}Columns(
+    (id, active) => toggleStatusMutation.mutate({ id, active }),
+    (id) => navigate(`/{{nameLower}}s/${id}`),
+    (id) => deleteMutation.mutate(id)
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 flex-1 flex flex-col min-h-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{{nameCapitalized}}s</h1>
           <p className="text-sm text-gray-500">Gerencie os registros do sistema</p>
@@ -106,7 +131,7 @@ export function {{nameCapitalized}}ListPage() {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm shrink-0">
         <SearchInput
           onSearch={handleSearch}
           placeholder="Pesquisar..."
@@ -125,12 +150,9 @@ export function {{nameCapitalized}}ListPage() {
       <DataTable
         {...tableProps}
         data={data?.items || []}
-        headerMap={headerMap}
-        isLoading={isLoading}
+        headerMap={columns}
+        isLoading={isLoading || isFetching}
         totalItems={data?.total || 0}
-        renderActions={(item) => (
-          <DataTableActions actions={actions(item)} />
-        )}
       />
 
       <FilterDrawer
@@ -138,7 +160,7 @@ export function {{nameCapitalized}}ListPage() {
         onClose={() => setIsFilterOpen(false)}
         fields={filterFields}
         onFilter={handleFilter}
-        initialValues={queryParams}
+        initialValues={filters}
       />
     </div>
   );
