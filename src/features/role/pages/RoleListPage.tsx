@@ -37,7 +37,8 @@ export function RoleListPage() {
       searchWord, 
       searchFields, 
       filters,
-      sort
+      sort,
+      all: true
     }),
     placeholderData: (prev) => prev,
   });
