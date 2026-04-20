@@ -2,17 +2,16 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { AxiosError } from 'axios';
+import { Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserFilters } from '../components/UserFilters';
 import { USER_SEARCHABLE_FIELDS as searchFields } from '../constants/user.constants';
 import { getUserColumns } from '../constants/userHeaderMap';
 import { userService } from '../services/user.service';
-
 import { useDataTable } from '@/hooks/useDataTable';
-
-import { Filter } from 'lucide-react';
+import { useToast } from '@/providers/ToastProvider';
 
 export function UserListPage() {
   const {
@@ -43,18 +42,28 @@ export function UserListPage() {
     placeholderData: (previousData) => previousData,
   });
 
+  const { success, error: toastError } = useToast();
+
   const toggleStatusMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => userService.toggleStatus(id, active),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      success('Status do usuário atualizado!');
     },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => userService.deleteUser(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      success('Usuário excluído com sucesso!');
     },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao excluir usuário.');
+    }
   });
 
   const columns = getUserColumns(

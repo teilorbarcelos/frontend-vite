@@ -3,15 +3,17 @@ import { Input } from '@/components/ui/Input';
 import { roleService } from '@/features/role/services/role.service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { userService } from '../services/user.service';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useToast } from '@/hooks/useToast';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  email: z.email('Invalid email'),
+  email: z.string().email('Invalid email'),
   password: z.string().optional(),
   id_role: z.string().min(1, 'Role is required'),
   phone: z.string().optional(),
@@ -25,6 +27,7 @@ export function UserFormPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEditing = Boolean(id && id !== 'new');
+  const { success, error: toastError } = useToast();
 
   const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user', id],
@@ -72,16 +75,18 @@ export function UserFormPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       hideLoading();
+      success(isEditing ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!');
       navigate('/users');
     },
-    onError: () => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       hideLoading();
+      toastError(err.response?.data?.message || 'Erro ao salvar usuário. Tente novamente.');
     }
   });
 
   const onSubmit = (data: UserForm) => {
     if (!isEditing && !data.password) {
-      alert('Password is required for new users');
+      toastError('Senha é obrigatória para novos usuários');
       return;
     }
     mutation.mutate(data);

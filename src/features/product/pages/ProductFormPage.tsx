@@ -3,8 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { productService } from '../services/product.service';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -24,6 +26,7 @@ export function ProductFormPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEditing = Boolean(id && id !== 'new');
+  const { success, error: toastError } = useToast();
 
   const { data: product, isLoading: isLoadingProduct } = useQuery({
     queryKey: ['product', id],
@@ -60,10 +63,12 @@ export function ProductFormPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       hideLoading();
+      success(isEditing ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
       navigate('/products');
     },
-    onError: () => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       hideLoading();
+      toastError(err.response?.data?.message || 'Erro ao salvar produto. Tente novamente.');
     }
   });
 

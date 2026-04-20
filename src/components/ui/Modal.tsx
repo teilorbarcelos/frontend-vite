@@ -1,7 +1,7 @@
-import * as React from 'react';
+import { cn } from '@/utils/cn';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import * as React from 'react';
 
 const Modal = DialogPrimitive.Root;
 
@@ -12,7 +12,7 @@ const ModalPortal = DialogPrimitive.Portal;
 const ModalClose = DialogPrimitive.Close;
 
 const ModalOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
@@ -27,7 +27,7 @@ const ModalOverlay = React.forwardRef<
 ModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const ModalContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <ModalPortal>
@@ -79,7 +79,7 @@ const ModalFooter = ({
 ModalFooter.displayName = 'ModalFooter';
 
 const ModalTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
@@ -94,7 +94,7 @@ const ModalTitle = React.forwardRef<
 ModalTitle.displayName = DialogPrimitive.Title.displayName;
 
 const ModalDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
@@ -106,14 +106,6 @@ const ModalDescription = React.forwardRef<
 ModalDescription.displayName = DialogPrimitive.Description.displayName;
 
 export {
-  Modal,
-  ModalPortal,
-  ModalOverlay,
-  ModalClose,
-  ModalTrigger,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalTitle,
-  ModalDescription,
+    Modal, ModalClose, ModalContent, ModalDescription, ModalFooter, ModalHeader, ModalOverlay, ModalPortal, ModalTitle, ModalTrigger
 };
+

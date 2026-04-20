@@ -1,15 +1,17 @@
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { useDataTable } from '@/hooks/useDataTable';
+import { useToast } from '@/providers/ToastProvider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RoleFilters } from '../components/RoleFilters';
 import { ROLE_SEARCHABLE_FIELDS as searchFields } from '../constants/role.constants';
 import { getRoleColumns } from '../constants/roleHeaderMap';
-import { RoleFilters } from '../components/RoleFilters';
 import { roleService } from '../services/role.service';
-import { useDataTable } from '@/hooks/useDataTable';
 
 export function RoleListPage() {
   const {
@@ -40,18 +42,28 @@ export function RoleListPage() {
     placeholderData: (prev) => prev,
   });
 
+  const { success, error: toastError } = useToast();
+
   const toggleStatusMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => roleService.toggleStatus(id, active),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
+      success('Status da função atualizado!');
     },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => roleService.deleteRole(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
+      success('Função excluída com sucesso!');
     },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao excluir função.');
+    }
   });
 
   const columns = getRoleColumns(

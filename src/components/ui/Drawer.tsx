@@ -1,7 +1,7 @@
-import * as React from 'react';
+import { cn } from '@/utils/cn';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import * as React from 'react';
 
 const Drawer = DialogPrimitive.Root;
 const DrawerTrigger = DialogPrimitive.Trigger;
@@ -9,7 +9,7 @@ const DrawerPortal = DialogPrimitive.Portal;
 const DrawerClose = DialogPrimitive.Close;
 
 const DrawerOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
@@ -24,7 +24,7 @@ const DrawerOverlay = React.forwardRef<
 DrawerOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DrawerContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
@@ -76,7 +76,7 @@ const DrawerFooter = ({
 DrawerFooter.displayName = 'DrawerFooter';
 
 const DrawerTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
@@ -88,13 +88,7 @@ const DrawerTitle = React.forwardRef<
 DrawerTitle.displayName = DialogPrimitive.Title.displayName;
 
 export {
-  Drawer,
-  DrawerPortal,
-  DrawerOverlay,
-  DrawerTrigger,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerFooter,
-  DrawerTitle,
+    Drawer, DrawerClose,
+    DrawerContent, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerPortal, DrawerTitle, DrawerTrigger
 };
+

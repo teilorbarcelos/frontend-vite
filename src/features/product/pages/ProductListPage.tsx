@@ -1,7 +1,10 @@
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { useDataTable } from '@/hooks/useDataTable';
+import { useToast } from '@/providers/ToastProvider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +12,6 @@ import { ProductFilters } from '../components/ProductFilters';
 import { PRODUCT_SEARCHABLE_FIELDS as searchFields } from '../constants/product.constants';
 import { getProductColumns } from '../constants/productHeaderMap';
 import { productService } from '../services/product.service';
-import { useDataTable } from '@/hooks/useDataTable';
 
 export function ProductListPage() {
   const {
@@ -40,18 +42,28 @@ export function ProductListPage() {
     placeholderData: (prev) => prev,
   });
 
+  const { success, error: toastError } = useToast();
+
   const toggleStatusMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => productService.toggleStatus(id, active),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      success('Status do produto atualizado!');
     },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productService.deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      success('Produto excluído com sucesso!');
     },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao excluir produto.');
+    }
   });
 
   const columns = getProductColumns(

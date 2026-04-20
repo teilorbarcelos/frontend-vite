@@ -5,12 +5,15 @@ import { queryClient } from './lib/react-query'
 import './index.css'
 import App from './App.tsx'
 import { LoadingProvider } from './contexts/LoadingContext'
+import { ToastProvider } from './providers/ToastProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <LoadingProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </LoadingProvider>
     </QueryClientProvider>
   </StrictMode>,
