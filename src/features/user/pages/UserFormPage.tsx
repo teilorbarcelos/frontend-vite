@@ -1,16 +1,16 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService } from '../services/user.service';
-import { roleService } from '@/features/role/services/role.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { roleService } from '@/features/role/services/role.service';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
+import { z } from 'zod';
+import { userService } from '../services/user.service';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
+  email: z.email('Invalid email'),
   password: z.string().optional(),
   id_role: z.string().min(1, 'Role is required'),
   phone: z.string().optional(),

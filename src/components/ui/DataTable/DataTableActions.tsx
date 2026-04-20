@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { ReactNode } from 'react';
 import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -7,6 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../DropdownMenu';
+import {
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from '../Modal';
 
 interface ActionItem {
   label: string;
@@ -35,6 +44,13 @@ export function DataTableActions({
   deleteMessage = 'Tem certeza que deseja excluir este registro?',
   extraActions = []
 }: DataTableActionsProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(false);
+    onDelete?.(id);
+  };
+
   const actions: ActionItem[] = [
     ...(onEdit ? [{ 
       label: 'Editar', 
@@ -44,9 +60,7 @@ export function DataTableActions({
     ...(onDelete ? [{ 
       label: 'Excluir', 
       icon: <Trash2 className="w-4 h-4 mr-2 text-red-600" />, 
-      onClick: () => {
-        if (confirm(deleteMessage)) onDelete(id);
-      },
+      onClick: () => setIsDeleteDialogOpen(true),
       className: 'text-red-600 focus:text-red-600 focus:bg-red-50'
     }] : []),
     ...extraActions.map(a => ({ 
@@ -59,47 +73,61 @@ export function DataTableActions({
 
   if (actions.length === 0) return null;
 
-  // Se houver apenas uma ação, renderiza apenas o botão direto
-  if (actions.length === 1) {
-    const action = actions[0];
-    return (
-      <div className="flex justify-end">
+  return (
+    <div className="flex justify-end">
+      {/* Botão simples ou Dropdown */}
+      {actions.length === 1 ? (
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={action.onClick} 
-          className={action.className}
-          title={action.label}
+          onClick={actions[0].onClick} 
+          className={actions[0].className}
+          title={actions[0].label}
         >
-          {action.icon}
+          {actions[0].icon}
         </Button>
-      </div>
-    );
-  }
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {actions.map((action, idx) => (
+              <DropdownMenuItem 
+                key={idx} 
+                onClick={action.onClick}
+                className={action.className}
+              >
+                {action.icon}
+                <span>{action.label}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
-  // Se houver múltiplas ações, renderiza um dropdown
-  return (
-    <div className="flex justify-end">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {actions.map((action, idx) => (
-            <DropdownMenuItem 
-              key={idx} 
-              onClick={action.onClick}
-              className={action.className}
-            >
-              {action.icon}
-              <span>{action.label}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Modal de Confirmação de Exclusão */}
+      <Modal open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Confirmar Exclusão</ModalTitle>
+            <ModalDescription className="py-2">
+              {deleteMessage}
+            </ModalDescription>
+          </ModalHeader>
+          <ModalFooter>
+            <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleDelete}>
+              Excluir
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

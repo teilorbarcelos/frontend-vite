@@ -1,12 +1,12 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
