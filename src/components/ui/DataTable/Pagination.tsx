@@ -17,9 +17,9 @@ import type { PaginationProps } from './types';
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 15, 25, 50, 100];
 
-export function Pagination({ 
-  currentPage, 
-  totalPages, 
+export function Pagination({
+  currentPage,
+  totalPages,
   onPageChange,
   pageSize,
   totalItems,
@@ -34,16 +34,15 @@ export function Pagination({
 
   if (totalPages <= 1 && !onPageSizeChange) return null;
 
-  // Lógica para gerar os números das páginas com elipses
   const getPageNumbers = () => {
     const pages = [];
-    const delta = 1; // Páginas ao redor da atual
+    const delta = 1;
 
     for (let i = 0; i < totalPages; i++) {
       if (
-        i === 0 || // Primeira
-        i === totalPages - 1 || // Última
-        (i >= currentPage - delta && i <= currentPage + delta) // Ao redor da atual
+        i === 0 ||
+        i === totalPages - 1 ||
+        (i >= currentPage - delta && i <= currentPage + delta)
       ) {
         pages.push(i);
       } else if (
@@ -53,7 +52,7 @@ export function Pagination({
         pages.push('...');
       }
     }
-    // Remove duplicatas de '...' consecutivas
+
     return pages.filter((v, i, a) => v !== '...' || a[i - 1] !== '...');
   };
 
@@ -61,7 +60,6 @@ export function Pagination({
 
   return (
     <div className="flex flex-col gap-4 px-4 py-4 bg-white border-t border-gray-100 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
-      {/* Mobile view */}
       <div className="flex justify-between flex-1 sm:hidden">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
@@ -79,7 +77,6 @@ export function Pagination({
         </button>
       </div>
 
-      {/* Desktop view */}
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div className="flex items-center space-x-6">
           <p className="text-sm text-gray-500 whitespace-nowrap">
@@ -133,7 +130,6 @@ export function Pagination({
         </div>
 
         <nav className="inline-flex items-center space-x-1" aria-label="Pagination">
-          {/* Primeira Página */}
           <button
             onClick={() => handlePageChange(0)}
             disabled={currentPage === 0}
@@ -143,7 +139,6 @@ export function Pagination({
             <ChevronsLeft className="w-5 h-5" />
           </button>
 
-          {/* Anterior */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
@@ -153,7 +148,6 @@ export function Pagination({
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {/* Números das Páginas */}
           <div className="flex items-center space-x-1 px-2">
             {pageNumbers.map((page, index) => {
               if (page === '...') {
@@ -171,8 +165,8 @@ export function Pagination({
                   onClick={() => handlePageChange(Number(page))}
                   className={cn(
                     "min-w-[36px] h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-all",
-                    isCurrent 
-                      ? "bg-indigo-50 text-indigo-600 font-bold ring-1 ring-inset ring-indigo-500/20" 
+                    isCurrent
+                      ? "bg-indigo-50 text-indigo-600 font-bold ring-1 ring-inset ring-indigo-500/20"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   )}
                 >
@@ -182,7 +176,6 @@ export function Pagination({
             })}
           </div>
 
-          {/* Próximo */}
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage >= totalPages - 1}
@@ -192,7 +185,6 @@ export function Pagination({
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Última Página */}
           <button
             onClick={() => handlePageChange(totalPages - 1)}
             disabled={currentPage >= totalPages - 1}

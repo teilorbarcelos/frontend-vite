@@ -7,9 +7,9 @@ interface UseDataTableOptions {
 }
 
 export function useDataTable(options: UseDataTableOptions = {}) {
-  const { 
-    defaultSize = 25, 
-    defaultSort = { orderBy: 'name', orderDirection: 'asc' as SortDirection } 
+  const {
+    defaultSize = 25,
+    defaultSort = { orderBy: 'name', orderDirection: 'asc' as SortDirection }
   } = options;
 
   const [page, setPage] = useState(0);
@@ -34,26 +34,23 @@ export function useDataTable(options: UseDataTableOptions = {}) {
   }, []);
 
   return {
-    // Estados para a Query
+
     page,
     size,
     searchWord,
     filters,
     sort,
-    
-    // Setters diretos se necessário
+
     setPage,
     setSize,
     setSearchWord,
     setFilters,
     setSort,
 
-    // Handlers otimizados (já com reset de página)
     handleSearch,
     handleFilter,
     handleSort,
 
-    // Helper para as props da DataTable
     tableProps: {
       sorting: { value: sort, onChange: handleSort },
       paginationProps: {

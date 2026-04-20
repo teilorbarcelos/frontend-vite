@@ -64,7 +64,6 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      // Espera a animação de saída terminar antes de remover do estado
       setTimeout(onRemove, 1000);
     }
   }, [onRemove]);

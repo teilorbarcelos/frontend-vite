@@ -99,13 +99,12 @@ export {
   ToastTitle, ToastViewport, type ToastProps
 };
 
-// Componente helper para o progresso
 export const ToastProgress = ({ duration, variant }: { duration?: number; variant?: ToastVariant }) => {
   if (!duration) return null;
 
   return (
     <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/5">
-      <div 
+      <div
         className={cn(
           "h-full transition-all ease-linear",
           {
@@ -130,7 +129,6 @@ export const ToastProgress = ({ duration, variant }: { duration?: number; varian
   );
 };
 
-// Componente helper para simplificar o uso
 export const ToastIcon = ({ variant }: { variant?: ToastVariant }) => {
   switch (variant) {
     case "success":

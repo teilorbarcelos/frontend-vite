@@ -9,16 +9,15 @@ interface SearchInputProps {
   defaultValue?: string;
 }
 
-export function SearchInput({ 
-  onSearch, 
-  placeholder = 'Pesquisar...', 
+export function SearchInput({
+  onSearch,
+  placeholder = 'Pesquisar...',
   className,
-  defaultValue = '' 
+  defaultValue = ''
 }: SearchInputProps) {
   const [value, setValue] = useState(defaultValue);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Função de debounce manual para evitar useEffect
   const debouncedSearch = useCallback((val: string) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);

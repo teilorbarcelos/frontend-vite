@@ -36,7 +36,7 @@ export function UserFormPage() {
   });
 
   const { data: rolesData } = useQuery({
-    queryKey: ['roles', 0, 100], // Fetch all active roles essentially
+    queryKey: ['roles', 0, 100],
     queryFn: () => roleService.getRoles({ page: 0, size: 100 }),
   });
 
@@ -61,7 +61,7 @@ export function UserFormPage() {
   const mutation = useMutation({
     mutationFn: (data: UserForm) => {
       showLoading('Salvando usuário...');
-      // Remove empty password if not changing
+
       const payload = { ...data };
       if (!payload.password) {
         delete payload.password;
@@ -115,7 +115,7 @@ export function UserFormPage() {
           error={errors.name?.message}
           placeholder="Full Name"
         />
-        
+
         <Input
           label="Email"
           type="email"

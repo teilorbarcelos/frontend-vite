@@ -37,7 +37,6 @@ export function FilterDrawer({
   onFilter,
   initialValues = {} 
 }: FilterDrawerProps) {
-  // Prepara os valores iniciais, reconstruindo objetos DateRange se necessário
   const processedValues = useMemo(() => {
     const formValues: Record<string, unknown> = { ...initialValues };
     
@@ -59,13 +58,12 @@ export function FilterDrawer({
   }, [initialValues, fields]);
 
   const { register, handleSubmit, control } = useForm({
-    values: processedValues // Sincroniza automaticamente quando o drawer abre ou valores mudam
+    values: processedValues
   });
 
   const onSubmit = (data: Record<string, unknown>) => {
     const formattedData: Record<string, unknown> = { ...data };
     
-    // Converte objetos DateRange de volta para strings start/end
     fields.forEach(field => {
       if (field.type === 'dateRange' && data[field.name]) {
         const range = data[field.name] as DateRange;
@@ -78,7 +76,6 @@ export function FilterDrawer({
       }
     });
 
-    // Remove valores vazios para não quebrar o backend
     const cleanData = Object.fromEntries(
       Object.entries(formattedData).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
     );
@@ -88,7 +85,6 @@ export function FilterDrawer({
   };
 
   const handleReset = () => {
-    // Ao resetar, simplesmente enviamos um objeto vazio
     onFilter({});
     onClose();
   };

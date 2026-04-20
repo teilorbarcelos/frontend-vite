@@ -11,9 +11,9 @@ import { Pagination } from './Pagination';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './TableAtoms';
 import type { DataTableProps, SortDirection } from './types';
 
-export function DataTable<T>({ 
-  data, 
-  headerMap, 
+export function DataTable<T>({
+  data,
+  headerMap,
   className,
   paginationProps,
   isLoading,
@@ -29,12 +29,11 @@ export function DataTable<T>({
       else if (sorting.value.orderDirection === 'desc') nextDirection = undefined;
     }
 
-    sorting.onChange({ 
-      orderBy: nextDirection ? key : undefined, 
-      orderDirection: nextDirection 
+    sorting.onChange({
+      orderBy: nextDirection ? key : undefined,
+      orderDirection: nextDirection
     });
 
-    // Resetar página automaticamente se houver paginação
     if (paginationProps?.onPageChange) {
       paginationProps.onPageChange(0);
     }
@@ -43,7 +42,6 @@ export function DataTable<T>({
   return (
     <TooltipProvider>
       <div className={cn('relative flex flex-col h-fit max-h-full w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', className)}>
-        {/* Loading Overlay */}
         {isLoading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px] transition-all animate-in fade-in">
             <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
@@ -55,9 +53,9 @@ export function DataTable<T>({
               <TableRow>
                 {headerMap.map((col, idx) => {
                   const isSorted = sorting?.value.orderBy === col.keyItem;
-                  
+
                   return (
-                    <TableHead 
+                    <TableHead
                       key={idx}
                       onClick={() => col.sortable && handleSort(col.keyItem)}
                       className={cn(

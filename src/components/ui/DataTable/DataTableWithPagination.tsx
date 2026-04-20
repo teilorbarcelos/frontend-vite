@@ -10,15 +10,9 @@ export function DataTableWithPagination<T>({
 }: DataTableWithPaginationProps<T>) {
   const [currentPage, setCurrentPage] = React.useState(0);
 
-  // Total pages derived from data
   const totalPages = Math.ceil(data.length / pageSize);
-  
-  // Ensure we are not on a page that doesn't exist anymore (e.g. after filtering)
-  const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
 
-  // If safePage is different from currentPage, we should technically update state, 
-  // but the user wants zero useEffect. We can handle it by using safePage for rendering.
-  // The next onPageChange will sync it back.
+  const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
 
   const paginatedData = React.useMemo(() => {
     const start = safePage * pageSize;

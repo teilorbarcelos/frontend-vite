@@ -27,7 +27,7 @@ export function Breadcrumb() {
         </li>
 
         {pathnames.map((value, index) => {
-          // Se o segmento anterior foi 'update', este segmento é o ID e não deve ser mostrado
+
           if (index > 0 && pathnames[index - 1] === 'update') return null;
 
           const isLast = index === pathnames.length - 1 || pathnames[index + 1] === undefined || pathnames[index] === 'update';
