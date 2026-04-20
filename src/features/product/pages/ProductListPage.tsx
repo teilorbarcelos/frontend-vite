@@ -34,7 +34,7 @@ export function ProductListPage() {
 
   const columns = getProductColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
-    (id) => navigate(`/products/${id}`),
+    (id) => navigate(`/products/update/${id}`),
     (id) => deleteMutation.mutate(id)
   );
 

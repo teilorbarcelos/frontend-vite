@@ -62,7 +62,8 @@ export function RoleFormPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="overflow-y-auto flex-1 pb-8">
+      <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
         <h1 className="text-xl font-bold text-gray-900">
           {isEditing ? 'Edit Role' : 'New Role'}
@@ -103,6 +104,7 @@ export function RoleFormPage() {
           </Button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

@@ -34,7 +34,7 @@ export function UserListPage() {
 
   const columns = getUserColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
-    (id) => navigate(`/users/${id}`),
+    (id) => navigate(`/users/update/${id}`),
     (id) => deleteMutation.mutate(id)
   );
 

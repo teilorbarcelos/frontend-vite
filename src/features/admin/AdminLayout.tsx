@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { LogOut, User as UserIcon, LayoutDashboard, Users, Shield, Package } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -62,6 +63,7 @@ export function AdminLayout() {
           </button>
         </header>
         <div className="flex-1 flex flex-col min-h-0 p-6">
+          <Breadcrumb />
           <Outlet />
         </div>
       </main>

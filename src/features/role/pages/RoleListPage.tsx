@@ -34,7 +34,7 @@ export function RoleListPage() {
 
   const columns = getRoleColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
-    (id) => navigate(`/roles/${id}`),
+    (id) => navigate(`/roles/update/${id}`),
     (id) => deleteMutation.mutate(id)
   );
 
