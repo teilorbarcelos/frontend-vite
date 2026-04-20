@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
-import { Filter, RotateCcw } from 'lucide-react';
-import React from 'react';
+import { Filter } from 'lucide-react';
+import { useMemo } from 'react';
 import type { DateRange } from 'react-day-picker';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from './Button';
@@ -37,13 +37,8 @@ export function FilterDrawer({
   onFilter,
   initialValues = {} 
 }: FilterDrawerProps) {
-  const { register, handleSubmit, reset, control } = useForm({
-    defaultValues: initialValues
-  });
-
-  // Sincroniza apenas quando o drawer abre ou quando o initialValues muda externamente
-  React.useEffect(() => {
-    // Para dateRange, precisamos reconstruir o objeto do initialValues se houver _start/_end
+  // Prepara os valores iniciais, reconstruindo objetos DateRange se necessário
+  const processedValues = useMemo(() => {
     const formValues: Record<string, unknown> = { ...initialValues };
     
     fields.forEach(field => {
@@ -60,112 +55,114 @@ export function FilterDrawer({
       }
     });
 
-    reset(formValues);
-  }, [isOpen, initialValues, reset, fields]);
+    return formValues;
+  }, [initialValues, fields]);
 
-  const handleClear = () => {
-    reset({});
+  const { register, handleSubmit, control } = useForm({
+    values: processedValues // Sincroniza automaticamente quando o drawer abre ou valores mudam
+  });
+
+  const onSubmit = (data: Record<string, unknown>) => {
+    const formattedData: Record<string, unknown> = { ...data };
+    
+    // Converte objetos DateRange de volta para strings start/end
+    fields.forEach(field => {
+      if (field.type === 'dateRange' && data[field.name]) {
+        const range = data[field.name] as DateRange;
+        delete formattedData[field.name];
+        
+        if (range?.from) {
+          formattedData[`${field.name}_start`] = format(range.from, 'yyyy-MM-dd');
+          formattedData[`${field.name}_end`] = format(range.to || range.from, 'yyyy-MM-dd');
+        }
+      }
+    });
+
+    // Remove valores vazios para não quebrar o backend
+    const cleanData = Object.fromEntries(
+      Object.entries(formattedData).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+    );
+
+    onFilter(cleanData);
+    onClose();
+  };
+
+  const handleReset = () => {
+    // Ao resetar, simplesmente enviamos um objeto vazio
     onFilter({});
     onClose();
   };
 
-  const onSubmit = (data: Record<string, unknown>) => {
-    const processedFilters: Record<string, unknown> = {};
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value === '' || value === null || value === undefined) return;
-      
-      // Se for um objeto de dateRange, explode em _start e _end para o backend
-      const field = fields.find(f => f.name === key);
-      if (field?.type === 'dateRange' && typeof value === 'object') {
-        const range = value as DateRange;
-        if (range.from) {
-          processedFilters[`${key}_start`] = format(range.from, 'yyyy-MM-dd');
-        }
-        if (range.to) {
-          processedFilters[`${key}_end`] = format(range.to, 'yyyy-MM-dd');
-        }
-        return;
-      }
-
-      processedFilters[key] = value;
-    });
-
-    onFilter(processedFilters);
-    onClose();
-  };
+  if (!isOpen) return null;
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent>
         <DrawerHeader>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-indigo-600" />
             <DrawerTitle>Filtros Avançados</DrawerTitle>
           </div>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
-          {fields.map((field) => (
-            <div key={field.name} className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                {field.label}
-              </label>
-              
-              {field.type === 'dateRange' ? (
-                <Controller
-                  control={control}
-                  name={field.name}
-                  render={({ field: { value, onChange } }) => (
-                    <DateRangePicker
-                      value={value as DateRange}
-                      onChange={onChange}
-                    />
-                  )}
-                />
-              ) : field.type === 'select' ? (
-                <select
-                  {...register(field.name)}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-                >
-                  <option value="">Todos</option>
-                  {field.options?.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  type={field.type as string}
-                  placeholder={field.placeholder}
-                  {...register(field.name)}
-                />
-              )}
-            </div>
-          ))}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            {fields.map((field) => (
+              <div key={field.name} className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  {field.label}
+                </label>
+                {field.type === 'dateRange' ? (
+                  <Controller
+                    control={control}
+                    name={field.name}
+                    render={({ field: { value, onChange } }) => (
+                      <DateRangePicker
+                        value={value as DateRange}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                ) : field.type === 'select' ? (
+                  <select
+                    {...register(field.name)}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                  >
+                    <option value="">Todos</option>
+                    {field.options?.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    type={field.type as string}
+                    placeholder={field.placeholder}
+                    {...register(field.name)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <DrawerFooter>
           <Button 
-            type="button" 
-            variant="ghost" 
+            variant="secondary" 
+            onClick={handleReset}
             className="flex-1"
-            onClick={handleClear}
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
             Limpar
           </Button>
           <Button 
-            type="button" 
-            className="flex-1"
             onClick={handleSubmit(onSubmit)}
+            className="flex-1"
           >
-            Filtrar
+            Aplicar
           </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
 }
-
