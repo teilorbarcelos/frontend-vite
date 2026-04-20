@@ -15,7 +15,7 @@ export function DataTable<T>({
     <TooltipProvider>
       <div className={cn('w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', className)}>
         <div className="overflow-x-auto">
-          <Table className="border-none shadow-none rounded-none">
+          <Table>
             <TableHeader>
               <TableRow>
                 {headerMap.map((col, idx) => (

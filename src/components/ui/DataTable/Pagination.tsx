@@ -23,7 +23,7 @@ export function Pagination({
   if (totalPages <= 1 && !onPageSizeChange) return null;
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
       <div className="flex justify-between flex-1 sm:hidden">
         <button
           onClick={handlePrevious}
@@ -42,26 +42,26 @@ export function Pagination({
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div className="flex items-center space-x-6">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-gray-500">
             {totalItems !== undefined ? (
               <>
-                Exibindo <span className="font-medium">{Math.min(currentPage * (pageSize ?? 0) + 1, totalItems)}</span> até{' '}
-                <span className="font-medium">
+                Exibindo <span className="font-medium text-gray-700">{Math.min(currentPage * (pageSize ?? 0) + 1, totalItems)}</span> até{' '}
+                <span className="font-medium text-gray-700">
                   {Math.min((currentPage + 1) * (pageSize ?? 0), totalItems)}
                 </span>{' '}
-                de <span className="font-medium">{totalItems}</span> resultados
+                de <span className="font-medium text-gray-700">{totalItems}</span> resultados
               </>
             ) : (
               <>
-                Página <span className="font-medium">{currentPage + 1}</span> de{' '}
-                <span className="font-medium">{totalPages}</span>
+                Página <span className="font-medium text-gray-700">{currentPage + 1}</span> de{' '}
+                <span className="font-medium text-gray-700">{totalPages}</span>
               </>
             )}
           </p>
 
           {onPageSizeChange && pageSize !== undefined && (
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Linhas por página:</span>
+              <span className="text-sm text-gray-500">Linhas por página:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
