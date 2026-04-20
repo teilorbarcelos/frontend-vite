@@ -22,7 +22,7 @@ export const productService = {
     all?: boolean;
   }) => {
     const { page = 0, size = 25, searchWord, searchFields, filters = {}, sort, all } = options;
-    const res = await api.get(`/v1/product/${all ? 'all' : ''}`, { 
+    const res = await api.get(`/v1/product${all ? '/all' : ''}`, { 
       params: { 
         page, 
         size,
