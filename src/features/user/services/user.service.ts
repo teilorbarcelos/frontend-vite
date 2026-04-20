@@ -12,19 +12,25 @@ export interface User {
 }
 
 export const userService = {
-  getUsers: async (page = 0, size = 15) => {
-    const res = await api.get('/v1/user', { params: { page, size } });
+  getUsers: async (page = 0, size = 15, searchWord?: string, searchFields?: string) => {
+    const res = await api.get('/v1/user', { 
+      params: { 
+        page, 
+        size,
+        ...(searchWord ? { searchWord, searchFields } : {})
+      } 
+    });
     return res.data;
   },
   getUser: async (id: string) => {
     const res = await api.get(`/v1/user/${id}`);
     return res.data;
   },
-  createUser: async (data: any) => {
+  createUser: async (data: Omit<User, 'id' | 'active'> & { password?: string }) => {
     const res = await api.post('/v1/user', data);
     return res.data;
   },
-  updateUser: async (id: string, data: any) => {
+  updateUser: async (id: string, data: Partial<User> & { password?: string }) => {
     const res = await api.put(`/v1/user/${id}`, data);
     return res.data;
   },

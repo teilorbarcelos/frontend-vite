@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { userService } from '../services/user.service';
+import { useLoading } from '@/contexts/LoadingContext';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -52,8 +53,11 @@ export function UserFormPage() {
     } : undefined,
   });
 
+  const { showLoading, hideLoading } = useLoading();
+
   const mutation = useMutation({
     mutationFn: (data: UserForm) => {
+      showLoading('Salvando usuário...');
       // Remove empty password if not changing
       const payload = { ...data };
       if (!payload.password) {
@@ -63,13 +67,16 @@ export function UserFormPage() {
       if (isEditing) {
         return userService.updateUser(id as string, payload);
       }
-      // Password is required for create, schema doesn't enforce it if optional above, let's just pass it
       return userService.createUser(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      hideLoading();
       navigate('/users');
     },
+    onError: () => {
+      hideLoading();
+    }
   });
 
   const onSubmit = (data: UserForm) => {
@@ -129,7 +136,7 @@ export function UserFormPage() {
             }`}
           >
             <option value="">Select a role</option>
-            {rolesData?.items?.map((role: any) => (
+            {rolesData?.items?.map((role) => (
               <option key={role.id} value={role.id}>
                 {role.name}
               </option>

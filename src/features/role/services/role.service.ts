@@ -9,8 +9,14 @@ export interface Role {
 }
 
 export const roleService = {
-  getRoles: async (page = 0, size = 15) => {
-    const res = await api.get('/v1/role', { params: { page, size } });
+  getRoles: async (page = 0, size = 15, searchWord?: string, searchFields?: string) => {
+    const res = await api.get('/v1/role', { 
+      params: { 
+        page, 
+        size,
+        ...(searchWord ? { searchWord, searchFields } : {})
+      } 
+    });
     return res.data;
   },
   getRole: async (id: string) => {

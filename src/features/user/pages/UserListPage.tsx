@@ -1,21 +1,27 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
-import { userService } from '../services/user.service';
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getUserColumns } from '../constants/userHeaderMap';
+import type { User } from '../services/user.service';
+import { userService } from '../services/user.service';
 
 export function UserListPage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
+  const [searchWord, setSearchWord] = useState('');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['users', page, size],
-    queryFn: () => userService.getUsers(page, size),
+  const searchableFields: (keyof User | string)[] = ['name', 'email', 'Role.name'];
+
+  const { data, isError, isFetching } = useQuery({
+    queryKey: ['users', page, size, searchWord],
+    queryFn: () => userService.getUsers(page, size, searchWord, searchableFields.join(',')),
+    placeholderData: (previousData) => previousData,
   });
 
   const toggleStatusMutation = useMutation({
@@ -32,28 +38,39 @@ export function UserListPage() {
     },
   });
 
+  const handleSearch = useCallback((val: string) => {
+    setSearchWord(val);
+    setPage(0);
+  }, []);
+
   const columns = getUserColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
     (id) => navigate(`/users/update/${id}`),
     (id) => deleteMutation.mutate(id)
   );
 
-  if (isLoading) return <div className="p-8 text-center text-gray-500">Carregando usuários...</div>;
   if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar usuários</div>;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-6 shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
-        <Button onClick={() => navigate('/users/new')}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Usuário
-        </Button>
+        <div className="flex items-center space-x-4">
+          <SearchInput 
+            onSearch={handleSearch} 
+            className="w-80"
+          />
+          <Button onClick={() => navigate('/users/new')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Usuário
+          </Button>
+        </div>
       </div>
 
       <DataTable
         data={data?.items || []}
         headerMap={columns}
+        isLoading={isFetching}
         paginationProps={
           data?.total > 0
             ? {

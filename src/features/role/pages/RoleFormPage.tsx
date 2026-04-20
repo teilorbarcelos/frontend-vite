@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { roleService } from '../services/role.service';
+import { useLoading } from '@/contexts/LoadingContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -40,8 +41,11 @@ export function RoleFormPage() {
     } : undefined,
   });
 
+  const { showLoading, hideLoading } = useLoading();
+
   const mutation = useMutation({
     mutationFn: (data: RoleForm) => {
+      showLoading('Salvando função...');
       if (isEditing) {
         return roleService.updateRole(id as string, data);
       }
@@ -49,8 +53,12 @@ export function RoleFormPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
+      hideLoading();
       navigate('/roles');
     },
+    onError: () => {
+      hideLoading();
+    }
   });
 
   const onSubmit = (data: RoleForm) => {

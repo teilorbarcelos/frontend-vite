@@ -21,7 +21,7 @@ type Prev = [never, 0, 1, 2, 3, 4, 5];
 export type HeaderMapItem<T> = {
   title: string;
   keyItem: PathsToString<T>;
-  parseItem?: (value: any, item: T) => ReactNode;
+  parseItem?: (value: unknown, item: T) => ReactNode;
   truncate?: boolean;
 };
 
@@ -30,6 +30,7 @@ export interface DataTableProps<T> {
   headerMap: HeaderMapItem<T>[];
   paginated?: boolean;
   className?: string;
+  isLoading?: boolean;
 }
 
 export interface PaginationProps {

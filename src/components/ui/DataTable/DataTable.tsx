@@ -4,16 +4,24 @@ import { Pagination } from './Pagination';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './TableAtoms';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../Tooltip';
 import type { DataTableProps, PaginationProps } from './types';
+import { Loader2 } from 'lucide-react';
 
 export function DataTable<T>({ 
   data, 
   headerMap, 
   className,
-  paginationProps 
+  paginationProps,
+  isLoading 
 }: DataTableProps<T> & { paginationProps?: PaginationProps }) {
   return (
     <TooltipProvider>
-      <div className={cn('flex flex-col h-fit max-h-full w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', className)}>
+      <div className={cn('relative flex flex-col h-fit max-h-full w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', className)}>
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px] transition-all animate-in fade-in">
+            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          </div>
+        )}
         <div className="flex-1 overflow-auto min-h-0">
           <Table>
             <TableHeader>

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService } from '../services/product.service';
+import { useLoading } from '@/contexts/LoadingContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -46,8 +47,11 @@ export function ProductFormPage() {
     } : undefined,
   });
 
+  const { showLoading, hideLoading } = useLoading();
+
   const mutation = useMutation({
     mutationFn: (data: ProductForm) => {
+      showLoading('Salvando produto...');
       if (isEditing) {
         return productService.updateProduct(id as string, data);
       }
@@ -55,8 +59,12 @@ export function ProductFormPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      hideLoading();
       navigate('/products');
     },
+    onError: () => {
+      hideLoading();
+    }
   });
 
   const onSubmit = (data: ProductForm) => {
