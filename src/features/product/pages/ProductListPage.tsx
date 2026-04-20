@@ -42,8 +42,8 @@ export function ProductListPage() {
   if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar produtos</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex items-center justify-between mb-6 shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
         <Button onClick={() => navigate('/products/new')}>
           <Plus className="w-4 h-4 mr-2" />

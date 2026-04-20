@@ -13,8 +13,8 @@ export function DataTable<T>({
 }: DataTableProps<T> & { paginationProps?: PaginationProps }) {
   return (
     <TooltipProvider>
-      <div className={cn('w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', className)}>
-        <div className="overflow-x-auto">
+      <div className={cn('flex-1 flex flex-col min-h-0 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', className)}>
+        <div className="flex-1 overflow-auto min-h-0">
           <Table>
             <TableHeader>
               <TableRow>

@@ -23,8 +23,8 @@ export function AdminLayout() {
 
   return (
     <div className="flex h-screen w-full bg-gray-50">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+        <div className="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
           <span className="text-xl font-bold text-gray-800">Admin Panel</span>
         </div>
         <nav className="flex-1 p-4 space-y-1">
@@ -61,7 +61,7 @@ export function AdminLayout() {
             <LogOut className="w-5 h-5" />
           </button>
         </header>
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 flex flex-col min-h-0 p-6">
           <Outlet />
         </div>
       </main>
