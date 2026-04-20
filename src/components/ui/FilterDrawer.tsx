@@ -1,14 +1,17 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import { format, parseISO } from 'date-fns';
 import { Filter, RotateCcw } from 'lucide-react';
-import { 
-  Drawer, 
-  DrawerContent, 
-  DrawerHeader, 
-  DrawerTitle, 
-  DrawerFooter
-} from './Drawer';
+import React from 'react';
+import type { DateRange } from 'react-day-picker';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from './Button';
+import { DateRangePicker } from './DateRangePicker';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from './Drawer';
 import { Input } from './Input';
 
 export interface FilterField {
@@ -34,14 +37,31 @@ export function FilterDrawer({
   onFilter,
   initialValues = {} 
 }: FilterDrawerProps) {
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, control } = useForm({
     defaultValues: initialValues
   });
 
   // Sincroniza apenas quando o drawer abre ou quando o initialValues muda externamente
   React.useEffect(() => {
-    reset(initialValues);
-  }, [isOpen, initialValues, reset]);
+    // Para dateRange, precisamos reconstruir o objeto do initialValues se houver _start/_end
+    const formValues: Record<string, unknown> = { ...initialValues };
+    
+    fields.forEach(field => {
+      if (field.type === 'dateRange') {
+        const start = initialValues[`${field.name}_start`];
+        const end = initialValues[`${field.name}_end`];
+        
+        if (start || end) {
+          formValues[field.name] = {
+            from: start ? parseISO(start as string) : undefined,
+            to: end ? parseISO(end as string) : undefined
+          } as DateRange;
+        }
+      }
+    });
+
+    reset(formValues);
+  }, [isOpen, initialValues, reset, fields]);
 
   const handleClear = () => {
     reset({});
@@ -54,6 +74,20 @@ export function FilterDrawer({
 
     Object.entries(data).forEach(([key, value]) => {
       if (value === '' || value === null || value === undefined) return;
+      
+      // Se for um objeto de dateRange, explode em _start e _end para o backend
+      const field = fields.find(f => f.name === key);
+      if (field?.type === 'dateRange' && typeof value === 'object') {
+        const range = value as DateRange;
+        if (range.from) {
+          processedFilters[`${key}_start`] = format(range.from, 'yyyy-MM-dd');
+        }
+        if (range.to) {
+          processedFilters[`${key}_end`] = format(range.to, 'yyyy-MM-dd');
+        }
+        return;
+      }
+
       processedFilters[key] = value;
     });
 
@@ -79,19 +113,16 @@ export function FilterDrawer({
               </label>
               
               {field.type === 'dateRange' ? (
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="date"
-                    className="flex-1"
-                    {...register(`${field.name}_start`)}
-                  />
-                  <span className="text-gray-400 text-sm">até</span>
-                  <Input
-                    type="date"
-                    className="flex-1"
-                    {...register(`${field.name}_end`)}
-                  />
-                </div>
+                <Controller
+                  control={control}
+                  name={field.name}
+                  render={({ field: { value, onChange } }) => (
+                    <DateRangePicker
+                      value={value as DateRange}
+                      onChange={onChange}
+                    />
+                  )}
+                />
               ) : field.type === 'select' ? (
                 <select
                   {...register(field.name)}
@@ -106,7 +137,7 @@ export function FilterDrawer({
                 </select>
               ) : (
                 <Input
-                  type={field.type}
+                  type={field.type as string}
                   placeholder={field.placeholder}
                   {...register(field.name)}
                 />
@@ -137,3 +168,4 @@ export function FilterDrawer({
     </Drawer>
   );
 }
+

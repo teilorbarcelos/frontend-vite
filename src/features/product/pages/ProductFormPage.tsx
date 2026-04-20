@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { productService } from '../services/product.service';
-import { useLoading } from '@/contexts/LoadingContext';
+import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';

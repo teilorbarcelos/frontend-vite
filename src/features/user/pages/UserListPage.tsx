@@ -11,7 +11,7 @@ import { USER_SEARCHABLE_FIELDS as searchFields } from '../constants/user.consta
 import { getUserColumns } from '../constants/userHeaderMap';
 import { userService } from '../services/user.service';
 import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/providers/ToastProvider';
+import { useToast } from '@/hooks/useToast';
 
 export function UserListPage() {
   const {

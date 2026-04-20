@@ -21,3 +21,18 @@ body {
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Melhorias visuais para o DateRangePicker */
+.day-range-start {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.day-range-end {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.day-range-middle {
+  border-radius: 0 !important;
+}

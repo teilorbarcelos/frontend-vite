@@ -7,27 +7,9 @@ import {
   ToastRoot,
   ToastTitle,
   ToastViewport,
-  type ToastVariant
 } from '@/components/ui/Toast';
-import React, { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
-
-interface Toast {
-  id: string;
-  title?: string;
-  description?: string;
-  variant?: ToastVariant;
-  duration?: number;
-}
-
-interface ToastContextType {
-  toast: (options: Omit<Toast, 'id'>) => void;
-  success: (message: string, title?: string) => void;
-  error: (message: string, title?: string) => void;
-  info: (message: string, title?: string) => void;
-  warning: (message: string, title?: string) => void;
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+import React, { useCallback, useState, type ReactNode } from 'react';
+import { ToastContext, type Toast } from '@/hooks/useToast';
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -105,12 +87,4 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
       <ToastProgress duration={toast.duration || 3000} variant={toast.variant} />
     </ToastRoot>
   );
-}
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 }

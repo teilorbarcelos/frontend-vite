@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/providers/ToastProvider';
+import { useToast } from '@/hooks/useToast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { Filter, Plus } from 'lucide-react';

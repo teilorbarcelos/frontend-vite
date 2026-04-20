@@ -1,12 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
-
-interface LoadingContextType {
-  showLoading: (message?: string) => void;
-  hideLoading: () => void;
-}
-
-const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+import { LoadingContext } from '@/hooks/useLoading';
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,12 +28,4 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       )}
     </LoadingContext.Provider>
   );
-}
-
-export function useLoading() {
-  const context = useContext(LoadingContext);
-  if (!context) {
-    throw new Error('useLoading must be used within a LoadingProvider');
-  }
-  return context;
 }

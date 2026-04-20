@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { roleService } from '@/features/role/services/role.service';
+import { roleService, type Role } from '@/features/role/services/role.service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { userService } from '../services/user.service';
-import { useLoading } from '@/contexts/LoadingContext';
+import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 
 const userSchema = z.object({
@@ -141,7 +141,7 @@ export function UserFormPage() {
             }`}
           >
             <option value="">Select a role</option>
-            {rolesData?.items?.map((role) => (
+            {rolesData?.items?.map((role: Role) => (
               <option key={role.id} value={role.id}>
                 {role.name}
               </option>

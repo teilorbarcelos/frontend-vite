@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
 
 interface RoleFiltersProps {
