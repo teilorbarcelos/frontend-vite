@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,28 +30,15 @@ export function RoleFormPage() {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<RoleForm>({
     resolver: zodResolver(roleSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      RoleFeature: '',
-    },
+    values: role ? {
+      name: role.name,
+      description: role.description,
+      RoleFeature: role.RoleFeature,
+    } : undefined,
   });
-
-  // Avoiding useEffect for state sync if possible, but for async defaultValues react-hook-form reset is needed.
-  // Using key={id} on a wrapper component is better, but doing a simple reset here is standard for RHF when data loads.
-  useEffect(() => {
-    if (role) {
-      reset({
-        name: role.name,
-        description: role.description,
-        RoleFeature: role.RoleFeature,
-      });
-    }
-  }, [role, reset]);
 
   const mutation = useMutation({
     mutationFn: (data: RoleForm) => {

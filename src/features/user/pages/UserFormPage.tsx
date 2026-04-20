@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,32 +39,18 @@ export function UserFormPage() {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<UserForm>({
     resolver: zodResolver(userSchema),
-    defaultValues: {
-      name: '',
-      email: '',
+    values: user ? {
+      name: user.name,
+      email: user.email,
+      id_role: user.id_role,
+      phone: user.phone || '',
+      document: user.document || '',
       password: '',
-      id_role: '',
-      phone: '',
-      document: '',
-    },
+    } : undefined,
   });
-
-  useEffect(() => {
-    if (user) {
-      reset({
-        name: user.name,
-        email: user.email,
-        id_role: user.id_role,
-        phone: user.phone || '',
-        document: user.document || '',
-        password: '', // do not fill password
-      });
-    }
-  }, [user, reset]);
 
   const mutation = useMutation({
     mutationFn: (data: UserForm) => {

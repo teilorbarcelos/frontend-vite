@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,32 +33,18 @@ export function ProductFormPage() {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: '',
-      sku: '',
-      category: '',
-      price: 0,
-      stock: 0,
-      description: '',
-    },
+    values: product ? {
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      price: product.price,
+      stock: product.stock,
+      description: product.description,
+    } : undefined,
   });
-
-  useEffect(() => {
-    if (product) {
-      reset({
-        name: product.name,
-        sku: product.sku,
-        category: product.category,
-        price: product.price,
-        stock: product.stock,
-        description: product.description,
-      });
-    }
-  }, [product, reset]);
 
   const mutation = useMutation({
     mutationFn: (data: ProductForm) => {
