@@ -18,11 +18,24 @@ export type PathsToString<T, Depth extends number = 5> = [Depth] extends [never]
 
 type Prev = [never, 0, 1, 2, 3, 4, 5];
 
+export type SortDirection = 'asc' | 'desc' | undefined;
+
+export interface TableSort {
+  orderBy?: string;
+  orderDirection: SortDirection;
+}
+
+export interface DataTableSort {
+  value: TableSort;
+  onChange: (sort: TableSort) => void;
+}
+
 export type HeaderMapItem<T> = {
   title: string;
   keyItem: PathsToString<T>;
   parseItem?: (value: unknown, item: T) => ReactNode;
   truncate?: boolean;
+  sortable?: boolean;
 };
 
 export interface DataTableProps<T> {
@@ -31,6 +44,8 @@ export interface DataTableProps<T> {
   paginated?: boolean;
   className?: string;
   isLoading?: boolean;
+  paginationProps?: PaginationProps;
+  sorting?: DataTableSort;
 }
 
 export interface PaginationProps {

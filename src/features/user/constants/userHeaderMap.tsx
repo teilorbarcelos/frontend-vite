@@ -6,11 +6,12 @@ export const getUserColumns = (
   onEdit: (id: string) => void,
   onDelete: (id: string) => void
 ): HeaderMapItem<User>[] => [
-  { title: 'Nome', keyItem: 'name', truncate: true },
-  { title: 'Email', keyItem: 'email', truncate: true },
+  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
+  { title: 'Email', keyItem: 'email', truncate: true, sortable: true },
   {
     title: 'Status',
     keyItem: 'active',
+    sortable: true,
     parseItem: (active, user) => (
       <button
         onClick={() => onToggleStatus(user.id, !user.active)}

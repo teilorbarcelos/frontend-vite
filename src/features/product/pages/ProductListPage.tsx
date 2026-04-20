@@ -3,30 +3,40 @@ import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Filter, Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProductFilters } from '../components/ProductFilters';
-import { PRODUCT_SEARCHABLE_FIELDS } from '../constants/product.constants';
+import { PRODUCT_SEARCHABLE_FIELDS as searchFields } from '../constants/product.constants';
 import { getProductColumns } from '../constants/productHeaderMap';
 import { productService } from '../services/product.service';
+import { useDataTable } from '@/hooks/useDataTable';
 
 export function ProductListPage() {
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
-  const [searchWord, setSearchWord] = useState('');
-  const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const {
+    page,
+    size,
+    searchWord,
+    filters,
+    sort,
+    handleSearch,
+    handleFilter,
+    tableProps: dataTableProps
+  } = useDataTable();
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const handleSearch = useCallback((val: string) => {
-    setSearchWord(val);
-    setPage(0);
-  }, []);
-
   const { data, isError, isFetching } = useQuery({
-    queryKey: ['products', page, size, searchWord, filters],
-    queryFn: () => productService.getProducts(page, size, searchWord, PRODUCT_SEARCHABLE_FIELDS.join(','), filters),
+    queryKey: ['products', page, size, searchWord, filters, sort],
+    queryFn: () => productService.getProducts({
+      page, 
+      size, 
+      searchWord, 
+      searchFields, 
+      filters,
+      sort
+    }),
     placeholderData: (prev) => prev,
   });
 
@@ -84,10 +94,7 @@ export function ProductListPage() {
       <ProductFilters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-        onFilter={(newFilters) => {
-          setFilters(newFilters);
-          setPage(0);
-        }}
+        onFilter={handleFilter}
         initialValues={filters}
       />
 
@@ -95,18 +102,12 @@ export function ProductListPage() {
         data={data?.items || []}
         headerMap={columns}
         isLoading={isFetching}
-        paginationProps={
-          data?.total > 0
-            ? {
-                currentPage: page,
-                totalPages: Math.ceil(data.total / size),
-                onPageChange: setPage,
-                pageSize: size,
-                totalItems: data.total,
-                onPageSizeChange: setSize,
-              }
-            : undefined
-        }
+        {...dataTableProps}
+        paginationProps={{
+          ...dataTableProps.paginationProps,
+          totalPages: data?.total ? Math.ceil(data.total / size) : 0,
+          totalItems: data?.total,
+        }}
       />
     </div>
   );

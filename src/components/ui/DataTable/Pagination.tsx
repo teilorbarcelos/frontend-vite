@@ -1,19 +1,19 @@
 import { cn } from '@/utils/cn';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronsLeft, 
-  ChevronsRight,
+import {
+  Check,
   ChevronDown,
-  Check
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
-import type { PaginationProps } from './types';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../DropdownMenu';
+import type { PaginationProps } from './types';
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 15, 25, 50, 100];
 
@@ -101,7 +101,7 @@ export function Pagination({
 
           {onPageSizeChange && pageSize !== undefined && (
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Linhas:</span>
+              <span className="text-xs font-medium text-gray-400 tracking-wider">Linhas:</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center space-x-2 text-sm font-medium text-gray-700 bg-gray-50/50 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-white hover:border-gray-300 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20">

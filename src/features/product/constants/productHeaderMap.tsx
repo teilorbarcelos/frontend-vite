@@ -6,18 +6,20 @@ export const getProductColumns = (
   onEdit: (id: string) => void,
   onDelete: (id: string) => void
 ): HeaderMapItem<Product>[] => [
-  { title: 'Nome', keyItem: 'name', truncate: true },
-  { title: 'SKU', keyItem: 'sku', truncate: true },
-  { title: 'Categoria', keyItem: 'category', truncate: true },
+  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
+  { title: 'SKU', keyItem: 'sku', truncate: true, sortable: true },
+  { title: 'Categoria', keyItem: 'category', truncate: true, sortable: true },
   {
     title: 'Preço',
     keyItem: 'price',
+    sortable: true,
     parseItem: (price) => `$${price != null ? Number(price).toFixed(2) : '0.00'}`,
   },
-  { title: 'Estoque', keyItem: 'stock' },
+  { title: 'Estoque', keyItem: 'stock', sortable: true },
   {
     title: 'Status',
     keyItem: 'active',
+    sortable: true,
     parseItem: (active, product) => (
       <button
         onClick={() => onToggleStatus(product.id, !product.active)}

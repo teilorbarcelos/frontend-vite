@@ -3,27 +3,43 @@ import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { USER_SEARCHABLE_FIELDS } from '../constants/user.constants';
+import { UserFilters } from '../components/UserFilters';
+import { USER_SEARCHABLE_FIELDS as searchFields } from '../constants/user.constants';
 import { getUserColumns } from '../constants/userHeaderMap';
 import { userService } from '../services/user.service';
-import { UserFilters } from '../components/UserFilters';
+
+import { useDataTable } from '@/hooks/useDataTable';
 
 import { Filter } from 'lucide-react';
 
 export function UserListPage() {
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
-  const [searchWord, setSearchWord] = useState('');
-  const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const {
+    page,
+    size,
+    searchWord,
+    filters,
+    sort,
+    handleSearch,
+    handleFilter,
+    tableProps: dataTableProps
+  } = useDataTable();
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data, isError, isFetching } = useQuery({
-    queryKey: ['users', page, size, searchWord, filters],
-    queryFn: () => userService.getUsers(page, size, searchWord, USER_SEARCHABLE_FIELDS.join(','), filters),
+    queryKey: ['users', page, size, searchWord, filters, sort],
+    queryFn: () => userService.getUsers({
+      page, 
+      size, 
+      searchWord, 
+      searchFields, 
+      filters,
+      sort
+    }),
     placeholderData: (previousData) => previousData,
   });
 
@@ -40,11 +56,6 @@ export function UserListPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
-
-  const handleSearch = useCallback((val: string) => {
-    setSearchWord(val);
-    setPage(0);
-  }, []);
 
   const columns = getUserColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
@@ -86,10 +97,7 @@ export function UserListPage() {
       <UserFilters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-        onFilter={(newFilters) => {
-          setFilters(newFilters);
-          setPage(0);
-        }}
+        onFilter={handleFilter}
         initialValues={filters}
       />
 
@@ -97,18 +105,12 @@ export function UserListPage() {
         data={data?.items || []}
         headerMap={columns}
         isLoading={isFetching}
-        paginationProps={
-          data?.total > 0
-            ? {
-                currentPage: page,
-                totalPages: Math.ceil(data.total / size),
-                onPageChange: setPage,
-                pageSize: size,
-                totalItems: data.total,
-                onPageSizeChange: setSize,
-              }
-            : undefined
-        }
+        {...dataTableProps}
+        paginationProps={{
+          ...dataTableProps.paginationProps,
+          totalPages: data?.total ? Math.ceil(data.total / size) : 0,
+          totalItems: data?.total,
+        }}
       />
     </div>
   );

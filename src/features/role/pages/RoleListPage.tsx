@@ -3,30 +3,40 @@ import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Filter, Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ROLE_SEARCHABLE_FIELDS } from '../constants/role.constants';
+import { ROLE_SEARCHABLE_FIELDS as searchFields } from '../constants/role.constants';
 import { getRoleColumns } from '../constants/roleHeaderMap';
 import { RoleFilters } from '../components/RoleFilters';
 import { roleService } from '../services/role.service';
+import { useDataTable } from '@/hooks/useDataTable';
 
 export function RoleListPage() {
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
-  const [searchWord, setSearchWord] = useState('');
-  const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const {
+    page,
+    size,
+    searchWord,
+    filters,
+    sort,
+    handleSearch,
+    handleFilter,
+    tableProps: dataTableProps
+  } = useDataTable();
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const handleSearch = useCallback((val: string) => {
-    setSearchWord(val);
-    setPage(0);
-  }, []);
-
   const { data, isError, isFetching } = useQuery({
-    queryKey: ['roles', page, size, searchWord, filters],
-    queryFn: () => roleService.getRoles(page, size, searchWord, ROLE_SEARCHABLE_FIELDS.join(','), filters),
+    queryKey: ['roles', page, size, searchWord, filters, sort],
+    queryFn: () => roleService.getRoles({
+      page, 
+      size, 
+      searchWord, 
+      searchFields, 
+      filters,
+      sort
+    }),
     placeholderData: (prev) => prev,
   });
 
@@ -84,10 +94,7 @@ export function RoleListPage() {
       <RoleFilters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-        onFilter={(newFilters) => {
-          setFilters(newFilters);
-          setPage(0);
-        }}
+        onFilter={handleFilter}
         initialValues={filters}
       />
 
@@ -95,18 +102,12 @@ export function RoleListPage() {
         data={data?.items || []}
         headerMap={columns}
         isLoading={isFetching}
-        paginationProps={
-          data?.total > 0
-            ? {
-                currentPage: page,
-                totalPages: Math.ceil(data.total / size),
-                onPageChange: setPage,
-                pageSize: size,
-                totalItems: data.total,
-                onPageSizeChange: setSize,
-              }
-            : undefined
-        }
+        {...dataTableProps}
+        paginationProps={{
+          ...dataTableProps.paginationProps,
+          totalPages: data?.total ? Math.ceil(data.total / size) : 0,
+          totalItems: data?.total,
+        }}
       />
     </div>
   );

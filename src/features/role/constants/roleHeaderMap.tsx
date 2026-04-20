@@ -6,11 +6,12 @@ export const getRoleColumns = (
   onEdit: (id: string) => void,
   onDelete: (id: string) => void
 ): HeaderMapItem<Role>[] => [
-  { title: 'Nome', keyItem: 'name', truncate: true },
-  { title: 'Descrição', keyItem: 'description', truncate: true },
+  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
+  { title: 'Descrição', keyItem: 'description', truncate: true, sortable: true },
   {
     title: 'Status',
     keyItem: 'active',
+    sortable: true,
     parseItem: (active, role) => (
       <button
         onClick={() => onToggleStatus(role.id, !role.active)}

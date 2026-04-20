@@ -34,7 +34,7 @@ export function UserFormPage() {
 
   const { data: rolesData } = useQuery({
     queryKey: ['roles', 0, 100], // Fetch all active roles essentially
-    queryFn: () => roleService.getRoles(0, 100),
+    queryFn: () => roleService.getRoles({ page: 0, size: 100 }),
   });
 
   const {

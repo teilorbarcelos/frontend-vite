@@ -12,13 +12,22 @@ export interface Product {
 }
 
 export const productService = {
-  getProducts: async (page = 0, size = 15, searchWord?: string, searchFields?: string, filters: Record<string, unknown> = {}) => {
+  getProducts: async (options: {
+    page?: number;
+    size?: number;
+    searchWord?: string;
+    searchFields?: string[];
+    filters?: Record<string, unknown>;
+    sort?: { orderBy?: string; orderDirection?: string };
+  }) => {
+    const { page = 0, size = 25, searchWord, searchFields, filters = {}, sort } = options;
     const res = await api.get('/v1/product', { 
       params: { 
         page, 
         size,
-        ...(searchWord ? { searchWord, searchFields } : {}),
-        ...filters
+        ...(searchWord ? { searchWord, searchFields: searchFields?.join(',') } : {}),
+        ...filters,
+        ...(sort?.orderBy ? { orderBy: sort.orderBy, orderDirection: sort.orderDirection } : {})
       } 
     });
     return res.data;
