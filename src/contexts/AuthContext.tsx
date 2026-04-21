@@ -30,7 +30,7 @@ interface AuthContextType {
   hasPermission: (feature: string, action: keyof Omit<Permission, 'feature'>) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();

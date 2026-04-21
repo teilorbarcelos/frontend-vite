@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Check, ChevronDown, Search, X } from 'lucide-react';
 import { useMageSelect } from 'mage-select-data-react';
-import { useCallback, useRef, useState } from 'react';
+import { useId, useCallback, useRef, useState } from 'react';
 import { Button } from './Button';
 import { Popover, PopoverContent, PopoverTrigger } from './Popover';
 
@@ -110,9 +110,15 @@ export function DynamicSelect<T extends { id: string | number }>({
     ? placeholder 
     : state.selectedItems[0] ? getOptionLabel(state.selectedItems[0]) : placeholder;
 
+  const labelId = useId();
+
   return (
     <div className="space-y-2">
-      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+      {label && (
+        <label id={labelId} className="text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
       
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
@@ -120,6 +126,7 @@ export function DynamicSelect<T extends { id: string | number }>({
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-labelledby={label ? labelId : undefined}
             className={cn(
               "w-full justify-between font-normal bg-white h-10 px-3 py-2 border-gray-300",
               !state.selectedItems.length && "text-gray-400",
@@ -168,8 +175,9 @@ export function DynamicSelect<T extends { id: string | number }>({
               })}
               
               {state.isLoading && (
-                <div className="py-3 text-center">
+                <div className="py-3 text-center flex items-center justify-center gap-2">
                   <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-indigo-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+                  <span className="text-sm text-gray-500">Carregando...</span>
                 </div>
               )}
               <div ref={observerTarget} className="h-4 w-full" />
@@ -188,6 +196,7 @@ export function DynamicSelect<T extends { id: string | number }>({
               {getOptionLabel(item)}
               <button
                 type="button"
+                aria-label="Remove"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemove(item);

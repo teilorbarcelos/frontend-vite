@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test/Coverage
+coverage
+*.lcov
+vitest.config.ts.timestamp-*
