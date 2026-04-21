@@ -2,25 +2,24 @@ import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { LogOut, User as UserIcon, LayoutDashboard, Users, Shield, Package } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const userName = JSON.parse(localStorage.getItem('user') || '{}')?.name || 'User';
+  const { user, logout, hasPermission } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    logout();
     navigate('/login');
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Roles', path: '/roles', icon: Shield },
-    { name: 'Users', path: '/users', icon: Users },
-    { name: 'Products', path: '/products', icon: Package },
-  ];
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, feature: 'dashboard' },
+    { name: 'Perfis', path: '/roles', icon: Shield, feature: 'role' },
+    { name: 'Usuários', path: '/users', icon: Users, feature: 'user' },
+    { name: 'Produtos', path: '/products', icon: Package, feature: 'product' },
+  ].filter(item => !item.feature || hasPermission(item.feature, 'view'));
 
   return (
     <div className="flex h-screen w-full bg-gray-50">
@@ -52,12 +51,12 @@ export function AdminLayout() {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6 space-x-4">
           <div className="flex items-center space-x-2 text-gray-600">
             <UserIcon className="w-5 h-5" />
-            <span className="text-sm font-medium">{userName}</span>
+            <span className="text-sm font-medium">{user?.name || 'User'}</span>
           </div>
           <button
             onClick={handleLogout}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
-            title="Logout"
+            title="Sair"
           >
             <LogOut className="w-5 h-5" />
           </button>

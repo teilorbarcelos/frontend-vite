@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 const routeMap: Record<string, string> = {
   dashboard: 'Dashboard',
   users: 'Usuários',
-  roles: 'Funções',
+  roles: 'Perfis',
   products: 'Produtos',
   new: 'Novo',
   update: 'Editar',

@@ -1,6 +1,7 @@
 import { api } from '@/lib/axios';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -12,8 +13,11 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+import { useAuth } from '@/contexts/AuthContext';
+
 export function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -28,9 +32,7 @@ export function LoginPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      login(data.token, data.user);
       navigate('/dashboard');
     },
   });
@@ -84,8 +86,10 @@ export function LoginPage() {
           </div>
 
           {loginMutation.isError && (
-            <div className="text-red-600 text-sm text-center">
-              Invalid credentials. Please try again.
+            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md border border-red-200 font-medium">
+              {axios.isAxiosError(loginMutation.error) && (loginMutation.error.code === 'ERR_NETWORK' || !loginMutation.error.response)
+                ? 'O servidor está offline. Tente novamente mais tarde.'
+                : 'Usuário ou senha incorretos. Verifique seus dados.'}
             </div>
           )}
 

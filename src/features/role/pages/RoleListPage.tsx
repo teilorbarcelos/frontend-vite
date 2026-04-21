@@ -73,12 +73,12 @@ export function RoleListPage() {
     (id) => deleteMutation.mutate(id)
   );
 
-  if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar roles</div>;
+  if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar perfis</div>;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-6 shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Roles</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Perfis</h1>
         <div className="flex items-center space-x-4">
           <SearchInput 
             onSearch={handleSearch} 
@@ -99,7 +99,7 @@ export function RoleListPage() {
           </Button>
           <Button onClick={() => navigate('/roles/new')}>
             <Plus className="w-4 h-4 mr-2" />
-            Nova Role
+            Novo Perfil
           </Button>
         </div>
       </div>

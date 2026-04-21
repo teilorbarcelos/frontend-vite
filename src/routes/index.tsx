@@ -7,12 +7,27 @@ import { RoleListPage } from '@/features/role/pages/RoleListPage';
 import { UserFormPage } from '@/features/user/pages/UserFormPage';
 import { UserListPage } from '@/features/user/pages/UserListPage';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
+const ProtectedRoute = ({ children, feature, action }: { 
+  children: React.ReactNode, 
+  feature?: string, 
+  action?: 'view' | 'create' | 'delete' | 'activate' 
+}) => {
+  const { isAuthenticated, isLoading, hasPermission } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  if (feature && action && !hasPermission(feature, action)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -37,20 +52,23 @@ const router = createBrowserRouter([
         path: 'dashboard',
         element: <div className="p-4">Dashboard</div>,
       },
-      { path: 'roles', element: <RoleListPage /> },
-      { path: 'roles/new', element: <RoleFormPage /> },
-      { path: 'roles/update/:id', element: <RoleFormPage /> },
-      { path: 'users', element: <UserListPage /> },
-      { path: 'users/new', element: <UserFormPage /> },
-      { path: 'users/update/:id', element: <UserFormPage /> },
-      { path: 'products', element: <ProductListPage /> },
-      { path: 'products/new', element: <ProductFormPage /> },
-      { path: 'products/update/:id', element: <ProductFormPage /> },
+      { path: 'roles', element: <ProtectedRoute feature="role" action="view"><RoleListPage /></ProtectedRoute> },
+      { path: 'roles/new', element: <ProtectedRoute feature="role" action="create"><RoleFormPage /></ProtectedRoute> },
+      { path: 'roles/update/:id', element: <ProtectedRoute feature="role" action="create"><RoleFormPage /></ProtectedRoute> },
+      { path: 'users', element: <ProtectedRoute feature="user" action="view"><UserListPage /></ProtectedRoute> },
+      { path: 'users/new', element: <ProtectedRoute feature="user" action="create"><UserFormPage /></ProtectedRoute> },
+      { path: 'users/update/:id', element: <ProtectedRoute feature="user" action="create"><UserFormPage /></ProtectedRoute> },
+      { path: 'products', element: <ProtectedRoute feature="product" action="view"><ProductListPage /></ProtectedRoute> },
+      { path: 'products/new', element: <ProtectedRoute feature="product" action="create"><ProductFormPage /></ProtectedRoute> },
+      { path: 'products/update/:id', element: <ProtectedRoute feature="product" action="create"><ProductFormPage /></ProtectedRoute> },
     ],
   },
 ]);
 
 export function AppRoutes() {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
-

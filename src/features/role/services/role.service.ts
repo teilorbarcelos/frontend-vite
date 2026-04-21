@@ -1,11 +1,25 @@
 import { api } from '@/lib/axios';
 
+export interface RoleFeature {
+  id_feature: string;
+  create: boolean;
+  view: boolean;
+  delete: boolean;
+  activate: boolean;
+}
+
+export interface Feature {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface Role {
   id: string;
   name: string;
   description: string;
   active: boolean;
-  RoleFeature: string;
+  RoleFeature: RoleFeature[];
 }
 
 export const roleService = {
@@ -34,11 +48,15 @@ export const roleService = {
     const res = await api.get(`/v1/role/${id}`);
     return res.data;
   },
-  createRole: async (data: Omit<Role, 'id' | 'active'>) => {
+  getFeatures: async (): Promise<Feature[]> => {
+    const res = await api.get('/v1/role/features');
+    return res.data;
+  },
+  createRole: async (data: Role) => {
     const res = await api.post('/v1/role', data);
     return res.data;
   },
-  updateRole: async (id: string, data: Partial<Role>) => {
+  updateRole: async (id: string, data: Role) => {
     const res = await api.put(`/v1/role/${id}`, data);
     return res.data;
   },
