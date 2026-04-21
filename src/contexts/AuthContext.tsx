@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '@/lib/axios';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface Permission {
   feature: string;
@@ -65,8 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasPermission = (feature: string, action: keyof Omit<Permission, 'feature'>) => {
     if (!user || !user.role) return false;
-    
-    // Permission validation based solely on the database matrix
     const permissions = user.role.permissions || [];
     const permission = permissions.find(p => p.feature === feature);
     return permission ? !!permission[action] : false;
