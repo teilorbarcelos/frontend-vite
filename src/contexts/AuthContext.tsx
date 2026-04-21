@@ -1,5 +1,6 @@
 import { api } from '@/lib/axios';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { createContext, useContext } from 'react';
 
 interface Permission {
   feature: string;
@@ -32,35 +33,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    async function loadUser() {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['auth-user'],
+    queryFn: async () => {
       const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const res = await api.get('/v1/auth/me');
-          setUser(res.data.user);
-        } catch {
-          localStorage.removeItem('token');
-          localStorage.removeItem('refreshToken');
-        }
+      if (!token) return null;
+      try {
+        const res = await api.get('/v1/auth/me');
+        return res.data.user as User;
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        return null;
       }
-      setIsLoading(false);
-    }
-    loadUser();
-  }, []);
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
 
   const login = (token: string, userData: User) => {
     localStorage.setItem('token', token);
-    setUser(userData);
+    queryClient.setQueryData(['auth-user'], userData);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    setUser(null);
+    queryClient.setQueryData(['auth-user'], null);
+    queryClient.clear();
   };
 
   const hasPermission = (feature: string, action: keyof Omit<Permission, 'feature'>) => {
@@ -72,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ 
-      user, 
+      user: user ?? null, 
       isAuthenticated: !!user, 
       isLoading, 
       login, 

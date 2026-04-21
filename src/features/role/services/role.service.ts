@@ -52,11 +52,11 @@ export const roleService = {
     const res = await api.get('/v1/role/features');
     return res.data;
   },
-  createRole: async (data: Role) => {
+  createRole: async (data: { name: string; description: string; permissions: RoleFeature[] }) => {
     const res = await api.post('/v1/role', data);
     return res.data;
   },
-  updateRole: async (id: string, data: Role) => {
+  updateRole: async (id: string, data: { name: string; description: string; permissions: RoleFeature[] }) => {
     const res = await api.put(`/v1/role/${id}`, data);
     return res.data;
   },

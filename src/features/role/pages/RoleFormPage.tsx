@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/useToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -44,29 +44,13 @@ export function RoleFormPage() {
     enabled: isEditing,
   });
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<RoleForm>({
-    resolver: zodResolver(roleSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      permissions: [],
-    }
-  });
-
-  const { fields } = useFieldArray({
-    control,
-    name: 'permissions',
-  });
-
-  useEffect(() => {
-    if (features) {
-      const initialPermissions = features.map(feature => {
+  const initialValues = useMemo(() => {
+    if (!features) return undefined;
+    
+    return {
+      name: role?.name || '',
+      description: role?.description || '',
+      permissions: features.map(feature => {
         const existing = role?.RoleFeature?.find((rf: RoleFeature) => rf.id_feature === feature.id);
         return {
           id_feature: feature.id,
@@ -75,15 +59,24 @@ export function RoleFormPage() {
           delete: existing?.delete ?? false,
           activate: existing?.activate ?? false,
         };
-      });
+      })
+    };
+  }, [features, role]);
 
-      reset({
-        name: role?.name || '',
-        description: role?.description || '',
-        permissions: initialPermissions,
-      });
-    }
-  }, [features, role, reset]);
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<RoleForm>({
+    resolver: zodResolver(roleSchema),
+    values: initialValues,
+  });
+
+  const { fields } = useFieldArray({
+    control,
+    name: 'permissions',
+  });
 
   const mutation = useMutation({
     mutationFn: (data: RoleForm) => {
