@@ -8,6 +8,7 @@ import { UserFormPage } from '@/features/user/pages/UserFormPage';
 import { UserListPage } from '@/features/user/pages/UserListPage';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ErrorPage } from '@/components/ui/ErrorPage';
 
 const ProtectedRoute = ({ children, feature, action }: { 
   children: React.ReactNode, 
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/',
@@ -43,6 +45,7 @@ const router = createBrowserRouter([
         <AdminLayout />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />,
     children: [
       {
         index: true,
