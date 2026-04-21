@@ -1,0 +1,114 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronLeft, Save } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { useLoading } from '@/hooks/useLoading';
+import { useToast } from '@/hooks/useToast';
+import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
+
+const {{nameLower}}Schema = z.object({
+name: z.string().min(1, 'Nome é obrigatório'),
+});
+
+type {{nameCapitalized}}Form = z.infer<typeof {{nameLower}}Schema>;
+
+  export function {{nameCapitalized}}FormPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { showLoading, hideLoading } = useLoading();
+  const { success, error: showError } = useToast();
+
+  const isEditing = Boolean(id && id !== 'new');
+
+  const { data: item, isLoading } = useQuery({
+  queryKey: ['{{nameLower}}', id],
+  queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}(id as string),
+  enabled: isEditing,
+  });
+
+  const {
+  register,
+  handleSubmit,
+  formState: { errors },
+  } = useForm<{{nameCapitalized}}Form>({
+    resolver: zodResolver({{nameLower}}Schema),
+    values: item,
+    defaultValues: {
+    name: '',
+    },
+    });
+
+    const mutation = useMutation({
+    mutationFn: (data: {{nameCapitalized}}Form) => {
+    showLoading('Salvando registro...');
+    if (isEditing) {
+    return {{nameLower}}Service.update{{nameCapitalized}}(id as string, data);
+    }
+    return {{nameLower}}Service.create{{nameCapitalized}}(data);
+    },
+    onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
+    success('Registro salvo com sucesso!');
+    navigate('/{{nameLower}}s');
+    },
+    onError: () => {
+    showError('Erro ao salvar o registro.');
+    },
+    onSettled: () => {
+    hideLoading();
+    }
+    });
+
+    const onSubmit = (data: {{nameCapitalized}}Form) => {
+    mutation.mutate(data);
+    };
+
+    if (isEditing && isLoading) return null;
+
+    return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={()=> navigate('/{{nameLower}}s')}
+            className="rounded-full"
+            >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isEditing ? 'Editar Registro' : 'Novo Registro'}
+            </h1>
+            <p className="text-sm text-gray-500">
+              Preencha as informações abaixo
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)}
+        className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+        <div className="grid grid-cols-1 gap-6">
+          <Input label="Nome" {...register('name')} error={errors.name?.message} placeholder="Digite o nome"
+            className="max-w-md" />
+        </div>
+
+        <div className="pt-6 border-t border-gray-50 flex items-center justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={()=> navigate('/{{nameLower}}s')}
+            >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={mutation.isPending} className="min-w-[120px]">
+            <Save className="w-4 h-4 mr-2" />
+            {mutation.isPending ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
+      </form>
+    </div>
+    );
+    }

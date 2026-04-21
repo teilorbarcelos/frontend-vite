@@ -1,0 +1,167 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Filter, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { Button } from '@/components/ui/Button';
+import { DataTable, DataTableActions, type HeaderMapItem } from '@/components/ui/DataTable';
+import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { useDataTable } from '@/hooks/useDataTable';
+import { useToast } from '@/hooks/useToast';
+import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
+
+export const get{{nameCapitalized}}Columns = (
+  onToggleStatus: (id: string, active: boolean) => void,
+  onEdit: (id: string) => void,
+  onDelete: (id: string) => void
+): HeaderMapItem<{{nameCapitalized}}>[] => [
+  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
+  {
+    title: 'Status',
+    keyItem: 'active',
+    sortable: true,
+    parseItem: (active, item) => (
+      <button
+        onClick={() => onToggleStatus(item.id, !item.active)}
+        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
+          active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}
+      >
+        {active ? 'Ativo' : 'Inativo'}
+      </button>
+    ),
+  },
+  {
+    title: '',
+    keyItem: 'id',
+    parseItem: (id) => (
+      <DataTableActions 
+        id={id as string} 
+        onEdit={onEdit} 
+        onDelete={onDelete}
+        deleteMessage="Tem certeza que deseja excluir este registro?"
+      />
+    ),
+  },
+];
+
+const filterFields: FilterField[] = [
+  { name: 'name', label: 'Nome', type: 'text', placeholder: 'Filtrar por nome' },
+  { 
+    name: 'active', 
+    label: 'Status', 
+    type: 'select', 
+    options: [
+      { label: 'Ativos', value: 'true' },
+      { label: 'Inativos', value: 'false' },
+    ] 
+  },
+  { name: 'created_at', label: 'Data de Criação', type: 'dateRange' },
+];
+
+export function {{nameCapitalized}}ListPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useToast();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const {
+    page,
+    size,
+    searchWord,
+    filters,
+    sort,
+    handleSearch,
+    handleFilter,
+    tableProps
+  } = useDataTable({
+    defaultSort: { orderBy: 'name', orderDirection: 'asc' }
+  });
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['{{nameLower}}s', page, size, searchWord, filters, sort],
+    queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}s({
+      page,
+      size,
+      searchWord,
+      filters,
+      sort
+    }),
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) => {{nameLower}}Service.toggleStatus(id, active),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
+      success('Status atualizado com sucesso!');
+    },
+    onError: () => {
+      showError('Erro ao atualizar status.');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => {{nameLower}}Service.delete{{nameCapitalized}}(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
+      success('Registro excluído com sucesso!');
+    },
+    onError: () => {
+      showError('Erro ao excluir o registro.');
+    }
+  });
+
+  const columns = get{{nameCapitalized}}Columns(
+    (id, active) => toggleStatusMutation.mutate({ id, active }),
+    (id) => navigate(`/{{nameLower}}s/${id}`),
+    (id) => deleteMutation.mutate(id)
+  );
+
+  return (
+    <div className="space-y-6 flex-1 flex flex-col min-h-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{{nameCapitalized}}s</h1>
+          <p className="text-sm text-gray-500">Gerencie os registros do sistema</p>
+        </div>
+        <Button onClick={() => navigate('/{{nameLower}}s/new')} className="w-full sm:w-auto">
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Registro
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm shrink-0">
+        <SearchInput
+          onSearch={handleSearch}
+          placeholder="Pesquisar..."
+          className="sm:max-w-xs"
+        />
+        <Button
+          variant="outline"
+          onClick={() => setIsFilterOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Filter className="w-4 h-4" />
+          Filtros
+        </Button>
+      </div>
+
+      <DataTable
+        {...tableProps}
+        data={data?.items || []}
+        headerMap={columns}
+        isLoading={isLoading || isFetching}
+        totalItems={data?.total || 0}
+      />
+
+      <FilterDrawer
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        fields={filterFields}
+        onFilter={handleFilter}
+        initialValues={filters}
+      />
+    </div>
+  );
+}
