@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Check, ChevronDown, Search, X } from 'lucide-react';
 import { useMageSelect } from 'mage-select-data-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Button } from './Button';
 import { Popover, PopoverContent, PopoverTrigger } from './Popover';
 
@@ -35,8 +35,7 @@ export function DynamicSelect<T extends { id: string | number }>({
   error,
 }: DynamicSelectProps<T>) {
   const [open, setOpen] = useState(false);
-  const observerTarget = useRef<HTMLDivElement>(null);
-
+  
   const {
     state,
     engine,
@@ -48,44 +47,35 @@ export function DynamicSelect<T extends { id: string | number }>({
     searchFields,
   });
 
-  const lastValueRef = useRef(value);
-  const initializedRef = useRef(false);
+  const [prevValue, setPrevValue] = useState<string | string[] | undefined>(undefined);
 
-  // Sync initial value and external changes safely in an effect
-  useEffect(() => {
+  if (JSON.stringify(value) !== JSON.stringify(prevValue)) {
+    setPrevValue(value);
     const ids = Array.isArray(value) ? value : value ? [value] : [];
-    
-    // Only update if it's the first time OR the value from props has actually changed
-    if (!initializedRef.current || JSON.stringify(value) !== JSON.stringify(lastValueRef.current)) {
-      initializedRef.current = true;
-      lastValueRef.current = value;
-      engine.setValue(ids);
-    }
-  }, [value, engine]);
+    engine.setValue(ids);
+  }
 
-  // Infinite scroll logic and initial load
-  useEffect(() => {
-    if (!open) return;
-
-    if (!state.initialized && !state.isLoading) {
-      engine.initialLoad();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const observerTarget = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && state.hasMore && !state.isLoading) {
-          engine.loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && state.hasMore && !state.isLoading) {
+            engine.loadMore();
+          }
+        },
+        { threshold: 0.1 }
+      );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
+      observer.observe(node);
+      observerRef.current = observer;
     }
-
-    return () => observer.disconnect();
-  }, [open, state.hasMore, state.isLoading, state.initialized, engine]);
+  }, [state.hasMore, state.isLoading, engine]);
 
   const handleSelect = (item: T) => {
     if (multiple) {
@@ -109,15 +99,22 @@ export function DynamicSelect<T extends { id: string | number }>({
     }, 0);
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen && !state.initialized && !state.isLoading) {
+      engine.initialLoad();
+    }
+  };
+
   const displayValue = multiple 
     ? placeholder 
     : state.selectedItems[0] ? getOptionLabel(state.selectedItems[0]) : placeholder;
 
   return (
-    <div className="space-y-1 w-full">
-      {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+    <div className="space-y-2">
+      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
       
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -175,7 +172,7 @@ export function DynamicSelect<T extends { id: string | number }>({
                   <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-indigo-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
                 </div>
               )}
-              <div ref={observerTarget} className="h-4" />
+              <div ref={observerTarget} className="h-4 w-full" />
             </div>
           </div>
         </PopoverContent>
