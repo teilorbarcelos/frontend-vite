@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { useAuth } from '@/contexts/AuthContext';
 import { useDataTable } from '@/hooks/useDataTable';
 import { useToast } from '@/hooks/useToast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { Filter, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserFilters } from '../components/UserFilters';
 import { USER_SEARCHABLE_FIELDS as searchFields } from '../constants/user.constants';
@@ -28,6 +29,13 @@ export function UserListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
+
+  const permissions = useMemo(() => ({
+    canCreate: hasPermission('user', 'create'),
+    canUpdate: hasPermission('user', 'create'),
+    canDelete: hasPermission('user', 'delete'),
+  }), [hasPermission]);
 
   const { data, isError, isFetching } = useQuery({
     queryKey: ['users', page, size, searchWord, filters, sort],
@@ -70,7 +78,8 @@ export function UserListPage() {
   const columns = getUserColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
     (id) => navigate(`/users/update/${id}`),
-    (id) => deleteMutation.mutate(id)
+    (id) => deleteMutation.mutate(id),
+    permissions
   );
 
   if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar usuários</div>;
@@ -97,10 +106,12 @@ export function UserListPage() {
               </span>
             )}
           </Button>
-          <Button onClick={() => navigate('/users/new')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Usuário
-          </Button>
+          {permissions.canCreate && (
+            <Button onClick={() => navigate('/users/new')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Usuário
+            </Button>
+          )}
         </div>
       </div>
 

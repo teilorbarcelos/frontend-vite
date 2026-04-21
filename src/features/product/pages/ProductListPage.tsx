@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { useAuth } from '@/contexts/AuthContext';
 import { useDataTable } from '@/hooks/useDataTable';
 import { useToast } from '@/hooks/useToast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { Filter, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProductFilters } from '../components/ProductFilters';
 import { PRODUCT_SEARCHABLE_FIELDS as searchFields } from '../constants/product.constants';
@@ -28,6 +29,13 @@ export function ProductListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
+
+  const permissions = useMemo(() => ({
+    canCreate: hasPermission('product', 'create'),
+    canUpdate: hasPermission('product', 'create'),
+    canDelete: hasPermission('product', 'delete'),
+  }), [hasPermission]);
 
   const { data, isError, isFetching } = useQuery({
     queryKey: ['products', page, size, searchWord, filters, sort],
@@ -70,7 +78,8 @@ export function ProductListPage() {
   const columns = getProductColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
     (id) => navigate(`/products/update/${id}`),
-    (id) => deleteMutation.mutate(id)
+    (id) => deleteMutation.mutate(id),
+    permissions
   );
 
   if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar produtos</div>;
@@ -97,10 +106,12 @@ export function ProductListPage() {
               </span>
             )}
           </Button>
-          <Button onClick={() => navigate('/products/new')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Produto
-          </Button>
+          {permissions.canCreate && (
+            <Button onClick={() => navigate('/products/new')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Produto
+            </Button>
+          )}
         </div>
       </div>
 

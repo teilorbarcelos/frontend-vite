@@ -1,10 +1,15 @@
 import { DataTableActions, type HeaderMapItem } from '@/components/ui/DataTable';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import type { Role } from '../services/role.service';
 
 export const getRoleColumns = (
   onToggleStatus: (id: string, active: boolean) => void,
   onEdit: (id: string) => void,
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void,
+  permissions: {
+    canUpdate: boolean;
+    canDelete: boolean;
+  }
 ): HeaderMapItem<Role>[] => [
   { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
   { title: 'Descrição', keyItem: 'description', truncate: true, sortable: true },
@@ -13,14 +18,11 @@ export const getRoleColumns = (
     keyItem: 'active',
     sortable: true,
     parseItem: (active, role) => (
-      <button
-        onClick={() => onToggleStatus(role.id, !role.active)}
-        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${
-          active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}
-      >
-        {active ? 'Ativo' : 'Inativo'}
-      </button>
+      <StatusBadge 
+        active={!!active} 
+        feature="role" 
+        onClick={() => onToggleStatus(role.id, !role.active)} 
+      />
     ),
   },
   {
@@ -29,8 +31,8 @@ export const getRoleColumns = (
     parseItem: (id) => (
       <DataTableActions 
         id={id as string} 
-        onEdit={onEdit} 
-        onDelete={onDelete}
+        onEdit={permissions.canUpdate ? onEdit : undefined} 
+        onDelete={permissions.canDelete ? onDelete : undefined}
         deleteMessage="Tem certeza que deseja excluir esta role?"
       />
     ),
