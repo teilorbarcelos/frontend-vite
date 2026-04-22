@@ -1,10 +1,10 @@
+import { renderWithProviders } from '@/test/utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RoleFormPage } from '../RoleFormPage';
-import { renderWithProviders } from '@/test/utils';
+import { useNavigate, useParams } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { roleService } from '../../services/role.service';
-import { useParams, useNavigate } from 'react-router-dom';
+import { RoleFormPage } from '../RoleFormPage';
 
 vi.mock('../../services/role.service', () => ({
   roleService: {
@@ -32,9 +32,9 @@ describe('RoleFormPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as vi.Mock).mockReturnValue({ id: 'new' });
-    (useNavigate as vi.Mock).mockReturnValue(mockNavigate);
-    (roleService.getFeatures as vi.Mock).mockResolvedValue(mockFeatures);
+    (useParams as Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (roleService.getFeatures as Mock).mockResolvedValue(mockFeatures);
   });
 
   it('renders correctly', async () => {
@@ -47,7 +47,7 @@ describe('RoleFormPage', () => {
 
   it('submits correctly for new role', async () => {
     const user = userEvent.setup();
-    (roleService.createRole as vi.Mock).mockResolvedValue({});
+    (roleService.createRole as Mock).mockResolvedValue({});
     renderWithProviders(<RoleFormPage />);
     
     await waitFor(() => screen.getByLabelText(/Nome do Perfil/i));
@@ -73,9 +73,9 @@ describe('RoleFormPage', () => {
       description: 'Desc',
       RoleFeature: [{ id_feature: 'f1', view: true, create: false, delete: false, activate: false }]
     };
-    (useParams as vi.Mock).mockReturnValue({ id: '1' });
-    (roleService.getRole as vi.Mock).mockResolvedValue(mockRole);
-    (roleService.updateRole as vi.Mock).mockResolvedValue({});
+    (useParams as Mock).mockReturnValue({ id: '1' });
+    (roleService.getRole as Mock).mockResolvedValue(mockRole);
+    (roleService.updateRole as Mock).mockResolvedValue({});
 
     renderWithProviders(<RoleFormPage />);
     
@@ -105,7 +105,7 @@ describe('RoleFormPage', () => {
 
   it('handles submission error with message', async () => {
     const user = userEvent.setup();
-    (roleService.createRole as vi.Mock).mockRejectedValue({
+    (roleService.createRole as Mock).mockRejectedValue({
       response: { data: { message: 'API Error Message' } }
     });
     
@@ -122,7 +122,7 @@ describe('RoleFormPage', () => {
 
   it('handles submission error without message', async () => {
     const user = userEvent.setup();
-    (roleService.createRole as vi.Mock).mockRejectedValue(new Error('Generic Error'));
+    (roleService.createRole as Mock).mockRejectedValue(new Error('Generic Error'));
     
     renderWithProviders(<RoleFormPage />);
     
@@ -139,7 +139,7 @@ describe('RoleFormPage', () => {
 
   it('shows "Salvando..." text when mutation is pending', async () => {
     const user = userEvent.setup();
-    (roleService.createRole as vi.Mock).mockReturnValue(new Promise(() => {}));
+    (roleService.createRole as Mock).mockReturnValue(new Promise(() => {}));
     renderWithProviders(<RoleFormPage />);
     await waitFor(() => screen.getByLabelText(/Nome do Perfil/i));
     await user.type(screen.getByLabelText(/Nome do Perfil/i), 'Admin');

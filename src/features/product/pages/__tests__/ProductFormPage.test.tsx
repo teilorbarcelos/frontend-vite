@@ -1,10 +1,10 @@
+import { renderWithProviders } from '@/test/utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ProductFormPage } from '../ProductFormPage';
-import { renderWithProviders } from '@/test/utils';
+import { useNavigate, useParams } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { productService } from '../../services/product.service';
-import { useParams, useNavigate } from 'react-router-dom';
+import { ProductFormPage } from '../ProductFormPage';
 
 vi.mock('../../services/product.service', () => ({
   productService: {
@@ -28,8 +28,8 @@ describe('ProductFormPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as vi.Mock).mockReturnValue({ id: 'new' });
-    (useNavigate as vi.Mock).mockReturnValue(mockNavigate);
+    (useParams as Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
   });
 
   it('renders "New Product" title', () => {
@@ -39,7 +39,7 @@ describe('ProductFormPage', () => {
 
   it('submits correctly for new product', async () => {
     const user = userEvent.setup();
-    (productService.createProduct as vi.Mock).mockResolvedValue({});
+    (productService.createProduct as Mock).mockResolvedValue({});
     renderWithProviders(<ProductFormPage />);
     
     await user.type(screen.getByLabelText(/Name/i), 'New Product');
@@ -60,9 +60,9 @@ describe('ProductFormPage', () => {
   it('submits correctly in edit mode', async () => {
     const user = userEvent.setup();
     const mockProduct = { id: '1', name: 'Product A', price: 100, sku: 'S1', category: 'C1', stock: 5, description: 'D1' };
-    (useParams as vi.Mock).mockReturnValue({ id: '1' });
-    (productService.getProduct as vi.Mock).mockResolvedValue(mockProduct);
-    (productService.updateProduct as vi.Mock).mockResolvedValue({});
+    (useParams as Mock).mockReturnValue({ id: '1' });
+    (productService.getProduct as Mock).mockResolvedValue(mockProduct);
+    (productService.updateProduct as Mock).mockResolvedValue({});
 
     renderWithProviders(<ProductFormPage />);
     
@@ -91,7 +91,7 @@ describe('ProductFormPage', () => {
 
   it('handles submission error with message', async () => {
     const user = userEvent.setup();
-    (productService.createProduct as vi.Mock).mockRejectedValue({
+    (productService.createProduct as Mock).mockRejectedValue({
       response: { data: { message: 'API Error Message' } }
     });
     
@@ -111,7 +111,7 @@ describe('ProductFormPage', () => {
 
   it('handles submission error without message', async () => {
     const user = userEvent.setup();
-    (productService.createProduct as vi.Mock).mockRejectedValue(new Error('Generic Error'));
+    (productService.createProduct as Mock).mockRejectedValue(new Error('Generic Error'));
     
     renderWithProviders(<ProductFormPage />);
     
@@ -131,7 +131,7 @@ describe('ProductFormPage', () => {
 
   it('shows "Saving..." text when mutation is pending', async () => {
     const user = userEvent.setup();
-    (productService.createProduct as vi.Mock).mockReturnValue(new Promise(() => {}));
+    (productService.createProduct as Mock).mockReturnValue(new Promise(() => {}));
     renderWithProviders(<ProductFormPage />);
     await user.type(screen.getByLabelText(/Name/i), 'New Product');
     await user.type(screen.getByLabelText(/SKU/i), 'SKU-1');

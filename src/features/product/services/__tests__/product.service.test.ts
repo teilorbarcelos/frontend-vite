@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { productService } from '../product.service';
 import { api } from '@/lib/axios';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { productService } from '../product.service';
 
 vi.mock('@/lib/axios', () => ({
   api: {
@@ -18,7 +18,7 @@ describe('productService', () => {
   });
 
   it('getProducts calls correct endpoint with all options', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: [] });
+    (api.get as Mock).mockResolvedValue({ data: [] });
     await productService.getProducts({
       all: true,
       searchWord: 'test',
@@ -38,7 +38,7 @@ describe('productService', () => {
   });
 
   it('getProducts calls correct endpoint with minimal options', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: [] });
+    (api.get as Mock).mockResolvedValue({ data: [] });
     await productService.getProducts({});
     expect(api.get).toHaveBeenCalledWith('/v1/product', {
       params: {
@@ -49,31 +49,31 @@ describe('productService', () => {
   });
 
   it('getProduct calls correct endpoint', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: {} });
+    (api.get as Mock).mockResolvedValue({ data: {} });
     await productService.getProduct('1');
     expect(api.get).toHaveBeenCalledWith('/v1/product/1');
   });
 
   it('createProduct calls correct endpoint', async () => {
-    (api.post as vi.Mock).mockResolvedValue({ data: {} });
+    (api.post as Mock).mockResolvedValue({ data: {} });
     await productService.createProduct({ name: 'P1', sku: 'S1', category: 'C1', price: 10, stock: 100, description: 'D1' });
     expect(api.post).toHaveBeenCalledWith('/v1/product', { name: 'P1', sku: 'S1', category: 'C1', price: 10, stock: 100, description: 'D1' });
   });
 
   it('updateProduct calls correct endpoint', async () => {
-    (api.put as vi.Mock).mockResolvedValue({ data: {} });
+    (api.put as Mock).mockResolvedValue({ data: {} });
     await productService.updateProduct('1', { name: 'P1' });
     expect(api.put).toHaveBeenCalledWith('/v1/product/1', { name: 'P1' });
   });
 
   it('deleteProduct calls correct endpoint', async () => {
-    (api.delete as vi.Mock).mockResolvedValue({ data: {} });
+    (api.delete as Mock).mockResolvedValue({ data: {} });
     await productService.deleteProduct('1');
     expect(api.delete).toHaveBeenCalledWith('/v1/product/1');
   });
 
   it('toggleStatus calls correct endpoint', async () => {
-    (api.patch as vi.Mock).mockResolvedValue({ data: {} });
+    (api.patch as Mock).mockResolvedValue({ data: {} });
     await productService.toggleStatus('1', true);
     expect(api.patch).toHaveBeenCalledWith('/v1/product/1/status', { active: true });
   });

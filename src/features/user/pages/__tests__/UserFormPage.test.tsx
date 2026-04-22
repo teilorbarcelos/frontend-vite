@@ -1,11 +1,11 @@
+import { roleService } from '@/features/role/services/role.service';
+import { renderWithProviders } from '@/test/utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { UserFormPage } from '../UserFormPage';
-import { renderWithProviders } from '@/test/utils';
+import { useNavigate, useParams } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { userService } from '../../services/user.service';
-import { roleService } from '@/features/role/services/role.service';
-import { useParams, useNavigate } from 'react-router-dom';
+import { UserFormPage } from '../UserFormPage';
 
 // Mock dependencies
 vi.mock('../../services/user.service', () => ({
@@ -37,10 +37,10 @@ describe('UserFormPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as vi.Mock).mockReturnValue({ id: 'new' });
-    (useNavigate as vi.Mock).mockReturnValue(mockNavigate);
-    (roleService.mageSelect as vi.Mock).mockResolvedValue({ items: [{ id: 'role-1', name: 'Admin' }], hasMore: false });
-    (roleService.mageHydrate as vi.Mock).mockResolvedValue([{ id: 'role-1', name: 'Admin' }]);
+    (useParams as Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (roleService.mageSelect as Mock).mockResolvedValue({ items: [{ id: 'role-1', name: 'Admin' }], hasMore: false });
+    (roleService.mageHydrate as Mock).mockResolvedValue([{ id: 'role-1', name: 'Admin' }]);
   });
 
   it('renders "New User" title and empty fields', () => {
@@ -50,7 +50,7 @@ describe('UserFormPage', () => {
 
   it('submits correctly for new user', async () => {
     const user = userEvent.setup();
-    (userService.createUser as vi.Mock).mockResolvedValue({});
+    (userService.createUser as Mock).mockResolvedValue({});
     
     renderWithProviders(<UserFormPage />);
     
@@ -98,9 +98,9 @@ describe('UserFormPage', () => {
   it('submits correctly for existing user', async () => {
     const user = userEvent.setup();
     const mockUser = { id: '1', name: 'John Doe', email: 'john@example.com', id_role: 'role-1' };
-    (useParams as vi.Mock).mockReturnValue({ id: '1' });
-    (userService.getUser as vi.Mock).mockResolvedValue(mockUser);
-    (userService.updateUser as vi.Mock).mockResolvedValue({});
+    (useParams as Mock).mockReturnValue({ id: '1' });
+    (userService.getUser as Mock).mockResolvedValue(mockUser);
+    (userService.updateUser as Mock).mockResolvedValue({});
     
     renderWithProviders(<UserFormPage />);
     
@@ -132,8 +132,8 @@ describe('UserFormPage', () => {
   });
 
   it('shows error state when fetching fails', async () => {
-    (useParams as vi.Mock).mockReturnValue({ id: '1' });
-    (userService.getUser as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
+    (useParams as Mock).mockReturnValue({ id: '1' });
+    (userService.getUser as Mock).mockRejectedValue(new Error('Fetch failed'));
     
     renderWithProviders(<UserFormPage />);
     
@@ -144,7 +144,7 @@ describe('UserFormPage', () => {
 
   it('handles submission error with message', async () => {
     const user = userEvent.setup();
-    (userService.createUser as vi.Mock).mockRejectedValue({
+    (userService.createUser as Mock).mockRejectedValue({
       response: { data: { message: 'API Error Message' } }
     });
     
@@ -166,7 +166,7 @@ describe('UserFormPage', () => {
 
   it('handles submission error without message', async () => {
     const user = userEvent.setup();
-    (userService.createUser as vi.Mock).mockRejectedValue(new Error('Generic Error'));
+    (userService.createUser as Mock).mockRejectedValue(new Error('Generic Error'));
     
     renderWithProviders(<UserFormPage />);
     
@@ -188,7 +188,7 @@ describe('UserFormPage', () => {
 
   it('shows "Saving..." text when mutation is pending', async () => {
     const user = userEvent.setup();
-    (userService.createUser as vi.Mock).mockReturnValue(new Promise(() => {}));
+    (userService.createUser as Mock).mockReturnValue(new Promise(() => {}));
     renderWithProviders(<UserFormPage />);
     await user.type(screen.getByLabelText(/Name/i), 'New User');
     await user.type(screen.getByLabelText(/Email/i), 'new@example.com');

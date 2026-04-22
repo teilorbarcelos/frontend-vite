@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { roleService } from '../role.service';
 import { api } from '@/lib/axios';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { roleService } from '../role.service';
 
 vi.mock('@/lib/axios', () => ({
   api: {
@@ -18,7 +18,7 @@ describe('roleService', () => {
   });
 
   it('getRoles calls correct endpoint with all options', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: { items: [], total: 0 } });
+    (api.get as Mock).mockResolvedValue({ data: { items: [], total: 0 } });
     await roleService.getRoles({
       all: true,
       searchWord: 'test',
@@ -38,7 +38,7 @@ describe('roleService', () => {
   });
 
   it('getRoles calls correct endpoint with minimal options', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: { items: [], total: 0 } });
+    (api.get as Mock).mockResolvedValue({ data: { items: [], total: 0 } });
     await roleService.getRoles({});
     expect(api.get).toHaveBeenCalledWith('/v1/role', {
       params: {
@@ -49,37 +49,37 @@ describe('roleService', () => {
   });
 
   it('getRole calls correct endpoint', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: {} });
+    (api.get as Mock).mockResolvedValue({ data: {} });
     await roleService.getRole('1');
     expect(api.get).toHaveBeenCalledWith('/v1/role/1');
   });
 
   it('getFeatures calls correct endpoint', async () => {
-    (api.get as vi.Mock).mockResolvedValue({ data: [] });
+    (api.get as Mock).mockResolvedValue({ data: [] });
     await roleService.getFeatures();
     expect(api.get).toHaveBeenCalledWith('/v1/role/features');
   });
 
   it('createRole calls correct endpoint', async () => {
-    (api.post as vi.Mock).mockResolvedValue({ data: {} });
+    (api.post as Mock).mockResolvedValue({ data: {} });
     await roleService.createRole({ name: 'R1', description: 'D1', permissions: [] });
     expect(api.post).toHaveBeenCalledWith('/v1/role', { name: 'R1', description: 'D1', permissions: [] });
   });
 
   it('updateRole calls correct endpoint', async () => {
-    (api.put as vi.Mock).mockResolvedValue({ data: {} });
+    (api.put as Mock).mockResolvedValue({ data: {} });
     await roleService.updateRole('1', { name: 'R1', description: 'D1', permissions: [] });
     expect(api.put).toHaveBeenCalledWith('/v1/role/1', { name: 'R1', description: 'D1', permissions: [] });
   });
 
   it('deleteRole calls correct endpoint', async () => {
-    (api.delete as vi.Mock).mockResolvedValue({ data: {} });
+    (api.delete as Mock).mockResolvedValue({ data: {} });
     await roleService.deleteRole('1');
     expect(api.delete).toHaveBeenCalledWith('/v1/role/1');
   });
 
   it('toggleStatus calls correct endpoint', async () => {
-    (api.patch as vi.Mock).mockResolvedValue({ data: {} });
+    (api.patch as Mock).mockResolvedValue({ data: {} });
     await roleService.toggleStatus('1', true);
     expect(api.patch).toHaveBeenCalledWith('/v1/role/1/status', { active: true });
   });
