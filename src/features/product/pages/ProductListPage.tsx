@@ -1,13 +1,12 @@
-import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
-import { SearchInput } from '@/components/ui/SearchInput';
+import { useAuth } from '@/contexts/AuthContext';
 import { useDataTable } from '@/hooks/useDataTable';
 import { useToast } from '@/hooks/useToast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { Filter, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ListPageHeader } from '@/components/ui/ListPageHeader';
 import { ProductFilters } from '../components/ProductFilters';
 import { PRODUCT_SEARCHABLE_FIELDS as searchFields } from '../constants/product.constants';
 import { getProductColumns } from '../constants/productHeaderMap';
@@ -28,6 +27,13 @@ export function ProductListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
+
+  const permissions = useMemo(() => ({
+    canCreate: hasPermission('product', 'create'),
+    canUpdate: hasPermission('product', 'create'),
+    canDelete: hasPermission('product', 'delete'),
+  }), [hasPermission]);
 
   const { data, isError, isFetching } = useQuery({
     queryKey: ['products', page, size, searchWord, filters, sort],
@@ -70,39 +76,22 @@ export function ProductListPage() {
   const columns = getProductColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
     (id) => navigate(`/products/update/${id}`),
-    (id) => deleteMutation.mutate(id)
+    (id) => deleteMutation.mutate(id),
+    permissions
   );
 
   if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar produtos</div>;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex items-center justify-between mb-6 shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
-        <div className="flex items-center space-x-4">
-          <SearchInput 
-            onSearch={handleSearch} 
-            className="w-80"
-          />
-          <Button 
-            variant="secondary" 
-            onClick={() => setIsFilterOpen(true)}
-            className={Object.keys(filters).length > 0 ? 'border-indigo-500 text-indigo-600 bg-indigo-50' : ''}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-            {Object.keys(filters).length > 0 && (
-              <span className="ml-2 px-1.5 py-0.5 text-xs bg-indigo-600 text-white rounded-full">
-                {Object.keys(filters).length}
-              </span>
-            )}
-          </Button>
-          <Button onClick={() => navigate('/products/new')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Produto
-          </Button>
-        </div>
-      </div>
+      <ListPageHeader
+        title="Produtos"
+        onSearch={handleSearch}
+        onFilterClick={() => setIsFilterOpen(true)}
+        filterCount={Object.keys(filters).length}
+        onCreateClick={permissions.canCreate ? () => navigate('/products/new') : undefined}
+        createLabel="Novo Produto"
+      />
 
       <ProductFilters
         isOpen={isFilterOpen}

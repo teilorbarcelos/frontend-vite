@@ -1,0 +1,38 @@
+import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
+
+interface {{nameCapitalized}}FiltersProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onFilter: (filters: Record<string, unknown>) => void;
+  initialValues?: Record<string, unknown>;
+}
+
+const {{upper nameLower}}_FILTER_CONFIG: FilterField[] = [
+  { 
+    name: 'active', 
+    label: 'Status', 
+    type: 'select', 
+    options: [
+      { label: 'Ativo', value: 'true' },
+      { label: 'Inativo', value: 'false' }
+    ] 
+  },
+  { name: 'createdAt', label: 'Data de Criação', type: 'dateRange' }
+];
+
+export function {{nameCapitalized}}Filters({ 
+  isOpen, 
+  onClose, 
+  onFilter, 
+  initialValues 
+}: {{nameCapitalized}}FiltersProps) {
+  return (
+    <FilterDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      fields={ {{upper nameLower}}_FILTER_CONFIG }
+      onFilter={onFilter}
+      initialValues={initialValues}
+    />
+  );
+}

@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns';
+import { formatDateRange } from '@/utils/validation';
+import { parseISO } from 'date-fns';
 import { Filter } from 'lucide-react';
 import { useMemo } from 'react';
 import type { DateRange } from 'react-day-picker';
@@ -70,8 +71,8 @@ export function FilterDrawer({
         delete formattedData[field.name];
         
         if (range?.from) {
-          formattedData[`${field.name}_start`] = format(range.from, 'yyyy-MM-dd');
-          formattedData[`${field.name}_end`] = format(range.to || range.from, 'yyyy-MM-dd');
+          const dates = formatDateRange(field.name, range.from, range.to);
+          Object.assign(formattedData, dates);
         }
       }
     });
@@ -105,7 +106,10 @@ export function FilterDrawer({
           <div className="grid grid-cols-1 gap-6">
             {fields.map((field) => (
               <div key={field.name} className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label 
+                  htmlFor={field.name}
+                  className="text-sm font-medium text-gray-700"
+                >
                   {field.label}
                 </label>
                 {field.type === 'dateRange' ? (
@@ -114,6 +118,7 @@ export function FilterDrawer({
                     name={field.name}
                     render={({ field: { value, onChange } }) => (
                       <DateRangePicker
+                        id={field.name}
                         value={value as DateRange}
                         onChange={onChange}
                       />
@@ -121,6 +126,7 @@ export function FilterDrawer({
                   />
                 ) : field.type === 'select' ? (
                   <select
+                    id={field.name}
                     {...register(field.name)}
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
                   >
@@ -133,6 +139,7 @@ export function FilterDrawer({
                   </select>
                 ) : (
                   <Input
+                    id={field.name}
                     type={field.type as string}
                     placeholder={field.placeholder}
                     {...register(field.name)}

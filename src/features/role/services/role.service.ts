@@ -52,11 +52,11 @@ export const roleService = {
     const res = await api.get('/v1/role/features');
     return res.data;
   },
-  createRole: async (data: Role) => {
+  createRole: async (data: { name: string; description: string; permissions: RoleFeature[] }) => {
     const res = await api.post('/v1/role', data);
     return res.data;
   },
-  updateRole: async (id: string, data: Role) => {
+  updateRole: async (id: string, data: { name: string; description: string; permissions: RoleFeature[] }) => {
     const res = await api.put(`/v1/role/${id}`, data);
     return res.data;
   },
@@ -67,5 +67,29 @@ export const roleService = {
   toggleStatus: async (id: string, active: boolean) => {
     const res = await api.patch(`/v1/role/${id}/status`, { active });
     return res.data;
+  },
+  
+  // DynamicSelect Helpers
+  mageSelect: async (page: number, query: string, options: { searchFields?: string[] }) => {
+    const size = 10;
+    const res = await roleService.getRoles({
+      page,
+      size,
+      searchWord: query,
+      searchFields: options.searchFields
+    });
+    
+    return {
+      items: res.items as Role[],
+      hasMore: (page + 1) * size < res.total
+    };
+  },
+
+  mageHydrate: async (ids: string[]): Promise<Role[]> => {
+    if (!ids.length) return [];
+    const roles = await Promise.all(
+      ids.map(id => roleService.getRole(id).catch(() => null))
+    );
+    return roles.filter(Boolean) as Role[];
   }
 };

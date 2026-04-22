@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '@/lib/axios';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getRolePermissions } from '@/utils/validation';
+import React, { createContext, useContext } from 'react';
 
 interface Permission {
   feature: string;
@@ -29,52 +31,51 @@ interface AuthContextType {
   hasPermission: (feature: string, action: keyof Omit<Permission, 'feature'>) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    async function loadUser() {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['auth-user'],
+    queryFn: async () => {
       const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const res = await api.get('/v1/auth/me');
-          setUser(res.data.user);
-        } catch {
-          localStorage.removeItem('token');
-          localStorage.removeItem('refreshToken');
-        }
+      if (!token) return null;
+      try {
+        const res = await api.get('/v1/auth/me');
+        return res.data.user as User;
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        return null;
       }
-      setIsLoading(false);
-    }
-    loadUser();
-  }, []);
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
 
   const login = (token: string, userData: User) => {
     localStorage.setItem('token', token);
-    setUser(userData);
+    queryClient.setQueryData(['auth-user'], userData);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    setUser(null);
+    queryClient.setQueryData(['auth-user'], null);
+    queryClient.clear();
   };
 
   const hasPermission = (feature: string, action: keyof Omit<Permission, 'feature'>) => {
     if (!user || !user.role) return false;
-    
-    // Permission validation based solely on the database matrix
-    const permissions = user.role.permissions || [];
+    const permissions = getRolePermissions(user.role) as Permission[];
     const permission = permissions.find(p => p.feature === feature);
     return permission ? !!permission[action] : false;
   };
 
   return (
     <AuthContext.Provider value={{ 
-      user, 
+      user: user ?? null, 
       isAuthenticated: !!user, 
       isLoading, 
       login, 

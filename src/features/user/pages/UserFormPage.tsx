@@ -1,15 +1,16 @@
 import { Button } from '@/components/ui/Button';
+import { DynamicSelect } from '@/components/ui/DynamicSelect';
 import { Input } from '@/components/ui/Input';
 import { roleService, type Role } from '@/features/role/services/role.service';
+import { useLoading } from '@/hooks/useLoading';
+import { useToast } from '@/hooks/useToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { userService } from '../services/user.service';
-import { useLoading } from '@/hooks/useLoading';
-import { useToast } from '@/hooks/useToast';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -35,14 +36,10 @@ export function UserFormPage() {
     enabled: isEditing,
   });
 
-  const { data: rolesData } = useQuery({
-    queryKey: ['roles', 0, 100],
-    queryFn: () => roleService.getRoles({ page: 0, size: 100 }),
-  });
-
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<UserForm>({
     resolver: zodResolver(userSchema),
@@ -99,81 +96,83 @@ export function UserFormPage() {
   return (
     <div className="overflow-y-auto flex-1 pb-8">
       <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <h1 className="text-xl font-bold text-gray-900">
-          {isEditing ? 'Edit User' : 'New User'}
-        </h1>
-        <Button variant="ghost" onClick={() => navigate('/users')}>
-          Cancel
-        </Button>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input
-          label="Name"
-          {...register('name')}
-          error={errors.name?.message}
-          placeholder="Full Name"
-        />
-
-        <Input
-          label="Email"
-          type="email"
-          {...register('email')}
-          error={errors.email?.message}
-          placeholder="user@example.com"
-        />
-
-        <Input
-          label="Password"
-          type="password"
-          {...register('password')}
-          error={errors.password?.message}
-          placeholder={isEditing ? 'Leave blank to keep unchanged' : 'Password'}
-        />
-
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700">Role</label>
-          <select
-            {...register('id_role')}
-            className={`flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-              errors.id_role ? 'border-red-500' : ''
-            }`}
-          >
-            <option value="">Select a role</option>
-            {rolesData?.items?.map((role: Role) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-              </option>
-            ))}
-          </select>
-          {errors.id_role && <p className="text-sm text-red-500">{errors.id_role.message}</p>}
-        </div>
-
-        <Input
-          label="Phone"
-          {...register('phone')}
-          error={errors.phone?.message}
-          placeholder="+55 11 99999-9999"
-        />
-
-        <Input
-          label="Document (CPF/CNPJ)"
-          {...register('document')}
-          error={errors.document?.message}
-          placeholder="000.000.000-00"
-        />
-
-        <div className="pt-4 flex justify-end space-x-3">
-          <Button type="button" variant="secondary" onClick={() => navigate('/users')}>
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <h1 className="text-xl font-bold text-gray-900">
+            {isEditing ? 'Edit User' : 'New User'}
+          </h1>
+          <Button variant="ghost" onClick={() => navigate('/users')}>
             Cancel
           </Button>
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Saving...' : 'Save User'}
-          </Button>
         </div>
-      </form>
-    </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Input
+            label="Name"
+            {...register('name')}
+            error={errors.name?.message}
+            placeholder="Full Name"
+          />
+
+          <Input
+            label="Email"
+            type="email"
+            {...register('email')}
+            error={errors.email?.message}
+            placeholder="user@example.com"
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            {...register('password')}
+            error={errors.password?.message}
+            placeholder={isEditing ? 'Leave blank to keep unchanged' : 'Password'}
+          />
+
+          <Controller
+            control={control}
+            name="id_role"
+            render={({ field }) => (
+              <DynamicSelect<Role>
+                label="Perfil"
+                placeholder="Select a role"
+                value={field.value}
+                onChange={field.onChange}
+                startPage={0}
+                searchFields={['name']}
+                fetchPage={roleService.mageSelect}
+                fetchByIds={roleService.mageHydrate}
+                getOptionLabel={(role) => role.name}
+                getOptionValue={(role) => role.id}
+                error={errors.id_role?.message}
+              />
+            )}
+          />
+
+          <Input
+            label="Phone"
+            {...register('phone')}
+            error={errors.phone?.message}
+            placeholder="+55 11 99999-9999"
+          />
+
+          <Input
+            label="Document (CPF/CNPJ)"
+            {...register('document')}
+            error={errors.document?.message}
+            placeholder="000.000.000-00"
+          />
+
+          <div className="pt-4 flex justify-end space-x-3">
+            <Button type="button" variant="secondary" onClick={() => navigate('/users')}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? 'Saving...' : 'Save User'}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

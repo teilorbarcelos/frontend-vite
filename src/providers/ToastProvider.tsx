@@ -1,3 +1,4 @@
+import { shouldTriggerToastRemoval } from '@/utils/validation';
 import {
   ToastProvider as RadixToastProvider,
   ToastClose,
@@ -63,9 +64,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
 
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen);
-    if (!isOpen) {
-      setTimeout(onRemove, 1000);
-    }
+    void (shouldTriggerToastRemoval(isOpen) && setTimeout(onRemove, 1000));
   }, [onRemove]);
 
   return (
