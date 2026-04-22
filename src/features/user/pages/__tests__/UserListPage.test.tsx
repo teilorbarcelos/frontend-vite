@@ -1,9 +1,14 @@
-import { screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { UserListPage } from '../UserListPage';
+import { AuthContext } from '@/contexts/AuthContext';
+import { LoadingProvider } from '@/contexts/LoadingContext';
+import { ToastProvider } from '@/providers/ToastProvider';
 import { renderWithProviders } from '@/test/utils';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { userService } from '../../services/user.service';
+import { UserListPage } from '../UserListPage';
 
 // Mock dependencies
 vi.mock('../../services/user.service', () => ({
@@ -22,7 +27,7 @@ describe('UserListPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (userService.getUsers as vi.Mock).mockResolvedValue({
+    (userService.getUsers as Mock).mockResolvedValue({
       items: mockUsers,
       total: 2,
     });
@@ -48,7 +53,7 @@ describe('UserListPage', () => {
   });
 
   it('shows error state if fetch fails', async () => {
-    (userService.getUsers as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
+    (userService.getUsers as Mock).mockRejectedValue(new Error('Fetch failed'));
     
     renderWithProviders(<UserListPage />);
     
@@ -59,7 +64,7 @@ describe('UserListPage', () => {
 
   it('triggers delete mutation when delete is clicked', async () => {
     const user = userEvent.setup();
-    (userService.deleteUser as vi.Mock).mockResolvedValue({});
+    (userService.deleteUser as Mock).mockResolvedValue({});
     renderWithProviders(<UserListPage />);
     
     await waitFor(() => screen.getByText('John Doe'));
@@ -83,7 +88,7 @@ describe('UserListPage', () => {
 
   it('triggers toggle status mutation', async () => {
     const user = userEvent.setup();
-    (userService.toggleStatus as vi.Mock).mockResolvedValue({});
+    (userService.toggleStatus as Mock).mockResolvedValue({});
     renderWithProviders(<UserListPage />);
     
     await waitFor(() => screen.getByText('John Doe'));
@@ -154,7 +159,7 @@ describe('UserListPage', () => {
 
   it('handles delete mutation error', async () => {
     const user = userEvent.setup();
-    (userService.deleteUser as vi.Mock).mockRejectedValue({
+    (userService.deleteUser as Mock).mockRejectedValue({
       response: { data: { message: 'Delete failed' } }
     });
     renderWithProviders(<UserListPage />);
@@ -171,7 +176,7 @@ describe('UserListPage', () => {
 
   it('handles toggle status mutation error', async () => {
     const user = userEvent.setup();
-    (userService.toggleStatus as vi.Mock).mockRejectedValue({
+    (userService.toggleStatus as Mock).mockRejectedValue({
       response: { data: { message: 'Toggle failed' } }
     });
     renderWithProviders(<UserListPage />);
@@ -201,7 +206,7 @@ describe('UserListPage', () => {
 
   it('handles delete mutation error without response message', async () => {
     const user = userEvent.setup();
-    (userService.deleteUser as vi.Mock).mockRejectedValue({});
+    (userService.deleteUser as Mock).mockRejectedValue({});
     renderWithProviders(<UserListPage />);
     
     await waitFor(() => screen.getByText('John Doe'));
@@ -216,7 +221,7 @@ describe('UserListPage', () => {
 
   it('handles toggle status mutation error without response message', async () => {
     const user = userEvent.setup();
-    (userService.toggleStatus as vi.Mock).mockRejectedValue(new Error('Network error'));
+    (userService.toggleStatus as Mock).mockRejectedValue(new Error('Network error'));
     renderWithProviders(<UserListPage />);
     
     await waitFor(() => screen.getByText('John Doe'));
@@ -229,10 +234,39 @@ describe('UserListPage', () => {
   });
 
   it('shows error state when fetching fails', async () => {
-    (userService.getUsers as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
+    (userService.getUsers as Mock).mockRejectedValue(new Error('Fetch failed'));
     renderWithProviders(<UserListPage />);
     await waitFor(() => {
       expect(screen.getByText('Erro ao carregar usuários')).toBeInTheDocument();
     });
+  });
+
+  it('renders without create button when permission is missing', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={{
+          user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
+          isAuthenticated: true,
+          isLoading: false,
+          login: () => {},
+          logout: () => {},
+          hasPermission: (f, a) => !(f === 'user' && a === 'create'),
+        }}>
+          <LoadingProvider>
+            <ToastProvider>
+              <MemoryRouter>
+                <UserListPage />
+              </MemoryRouter>
+            </ToastProvider>
+          </LoadingProvider>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Usuários')).toBeInTheDocument());
+    expect(screen.queryByText(/Novo Usuário/i)).not.toBeInTheDocument();
   });
 });

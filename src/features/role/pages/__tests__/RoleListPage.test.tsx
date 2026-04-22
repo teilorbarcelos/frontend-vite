@@ -1,9 +1,14 @@
-import { screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RoleListPage } from '../RoleListPage';
+import { AuthContext } from '@/contexts/AuthContext';
+import { LoadingProvider } from '@/contexts/LoadingContext';
+import { ToastProvider } from '@/providers/ToastProvider';
 import { renderWithProviders } from '@/test/utils';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { roleService } from '../../services/role.service';
+import { RoleListPage } from '../RoleListPage';
 
 vi.mock('../../services/role.service', () => ({
   roleService: {
@@ -21,7 +26,7 @@ describe('RoleListPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (roleService.getRoles as vi.Mock).mockResolvedValue({
+    (roleService.getRoles as Mock).mockResolvedValue({
       items: mockRoles,
       total: 2,
     });
@@ -45,7 +50,7 @@ describe('RoleListPage', () => {
 
   it('triggers delete mutation', async () => {
     const user = userEvent.setup();
-    (roleService.deleteRole as vi.Mock).mockResolvedValue({});
+    (roleService.deleteRole as Mock).mockResolvedValue({});
     renderWithProviders(<RoleListPage />);
     await waitFor(() => screen.getByText('Admin'));
     await user.click(screen.getAllByRole('button', { name: /Abrir menu/i })[0]);
@@ -56,7 +61,7 @@ describe('RoleListPage', () => {
 
   it('triggers toggle status mutation', async () => {
     const user = userEvent.setup();
-    (roleService.toggleStatus as vi.Mock).mockResolvedValue({});
+    (roleService.toggleStatus as Mock).mockResolvedValue({});
     renderWithProviders(<RoleListPage />);
     
     await waitFor(() => screen.getByText('Admin'));
@@ -122,7 +127,7 @@ describe('RoleListPage', () => {
 
   it('handles delete mutation error', async () => {
     const user = userEvent.setup();
-    (roleService.deleteRole as vi.Mock).mockRejectedValue({
+    (roleService.deleteRole as Mock).mockRejectedValue({
       response: { data: { message: 'Delete failed' } }
     });
     renderWithProviders(<RoleListPage />);
@@ -150,7 +155,7 @@ describe('RoleListPage', () => {
 
   it('handles toggle status mutation error', async () => {
     const user = userEvent.setup();
-    (roleService.toggleStatus as vi.Mock).mockRejectedValue(new Error('Toggle failed'));
+    (roleService.toggleStatus as Mock).mockRejectedValue(new Error('Toggle failed'));
     renderWithProviders(<RoleListPage />);
     
     await waitFor(() => screen.getByText('Admin'));
@@ -163,7 +168,7 @@ describe('RoleListPage', () => {
   });
 
   it('shows error state when fetching fails', async () => {
-    (roleService.getRoles as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
+    (roleService.getRoles as Mock).mockRejectedValue(new Error('Fetch failed'));
     renderWithProviders(<RoleListPage />);
     await waitFor(() => {
       expect(screen.getByText('Erro ao carregar roles')).toBeInTheDocument();
@@ -172,7 +177,7 @@ describe('RoleListPage', () => {
 
   it('handles delete mutation error without message', async () => {
     const user = userEvent.setup();
-    (roleService.deleteRole as vi.Mock).mockRejectedValue({});
+    (roleService.deleteRole as Mock).mockRejectedValue({});
     renderWithProviders(<RoleListPage />);
     
     await waitFor(() => screen.getByText('Admin'));
@@ -187,7 +192,7 @@ describe('RoleListPage', () => {
 
   it('handles toggle status mutation error without message', async () => {
     const user = userEvent.setup();
-    (roleService.toggleStatus as vi.Mock).mockRejectedValue({});
+    (roleService.toggleStatus as Mock).mockRejectedValue({});
     renderWithProviders(<RoleListPage />);
     
     await waitFor(() => screen.getByText('Admin'));
@@ -197,5 +202,34 @@ describe('RoleListPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Erro ao atualizar status.')).toBeInTheDocument();
     });
+  });
+
+  it('renders without create button when permission is missing', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={{
+          user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
+          isAuthenticated: true,
+          isLoading: false,
+          login: () => {},
+          logout: () => {},
+          hasPermission: (f, a) => !(f === 'role' && a === 'create'),
+        }}>
+          <LoadingProvider>
+            <ToastProvider>
+              <MemoryRouter>
+                <RoleListPage />
+              </MemoryRouter>
+            </ToastProvider>
+          </LoadingProvider>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Roles')).toBeInTheDocument());
+    expect(screen.queryByText(/Nova Role/i)).not.toBeInTheDocument();
   });
 });

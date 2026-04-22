@@ -1,9 +1,14 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { ProductListPage } from '../ProductListPage';
 import { renderWithProviders } from '@/test/utils';
 import { productService } from '../../services/product.service';
+import { AuthContext } from '@/contexts/AuthContext';
+import { LoadingProvider } from '@/contexts/LoadingContext';
+import { ToastProvider } from '@/providers/ToastProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../../services/product.service', () => ({
   productService: {
@@ -197,5 +202,34 @@ describe('ProductListPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Erro ao atualizar status.')).toBeInTheDocument();
     });
+  });
+
+  it('renders without create button when permission is missing', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={{
+          user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
+          isAuthenticated: true,
+          isLoading: false,
+          login: () => {},
+          logout: () => {},
+          hasPermission: (f, a) => !(f === 'product' && a === 'create'),
+        }}>
+          <LoadingProvider>
+            <ToastProvider>
+              <MemoryRouter>
+                <ProductListPage />
+              </MemoryRouter>
+            </ToastProvider>
+          </LoadingProvider>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Produtos')).toBeInTheDocument());
+    expect(screen.queryByText(/Novo Produto/i)).not.toBeInTheDocument();
   });
 });
