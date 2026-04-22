@@ -169,4 +169,33 @@ describe('RoleListPage', () => {
       expect(screen.getByText('Erro ao carregar roles')).toBeInTheDocument();
     });
   });
+
+  it('handles delete mutation error without message', async () => {
+    const user = userEvent.setup();
+    (roleService.deleteRole as vi.Mock).mockRejectedValue({});
+    renderWithProviders(<RoleListPage />);
+    
+    await waitFor(() => screen.getByText('Admin'));
+    await user.click(screen.getAllByRole('button', { name: /Abrir menu/i })[0]);
+    await user.click(await screen.findByText('Excluir'));
+    await user.click(await screen.findByRole('button', { name: /^Excluir$/ }));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao excluir role.')).toBeInTheDocument();
+    });
+  });
+
+  it('handles toggle status mutation error without message', async () => {
+    const user = userEvent.setup();
+    (roleService.toggleStatus as vi.Mock).mockRejectedValue({});
+    renderWithProviders(<RoleListPage />);
+    
+    await waitFor(() => screen.getByText('Admin'));
+    const statusButtons = screen.getAllByRole('button', { name: /Ativo/i });
+    await user.click(statusButtons[0]);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao atualizar status.')).toBeInTheDocument();
+    });
+  });
 });

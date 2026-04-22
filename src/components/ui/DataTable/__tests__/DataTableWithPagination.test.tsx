@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { DataTableWithPagination } from '../DataTableWithPagination';
-import type { DataTableHeaderMap } from '../types';
+import type { HeaderMapItem } from '../types';
 
 describe('DataTableWithPagination', () => {
   const mockData = Array.from({ length: 25 }, (_, i) => ({
@@ -10,7 +10,7 @@ describe('DataTableWithPagination', () => {
     email: `item${i + 1}@example.com`,
   }));
 
-  const headerMap: DataTableHeaderMap<typeof mockData[0]>[] = [
+  const headerMap: HeaderMapItem<typeof mockData[0]>[] = [
     { title: 'Name', keyItem: 'name' },
     { title: 'Email', keyItem: 'email' },
   ];

@@ -47,7 +47,7 @@ describe('ToastProvider', () => {
     expect(screen.getByText('Warning message')).toBeInTheDocument();
   });
 
-  it('removes toast when closed', async () => {
+  it('removes toast when closed and handles internal states', async () => {
     vi.useFakeTimers();
     render(
       <ToastProvider>
@@ -55,24 +55,24 @@ describe('ToastProvider', () => {
       </ToastProvider>
     );
 
-    const successBtn = screen.getByText('Success');
+    // Opening
     act(() => {
-      successBtn.click();
+      screen.getByText('Success').click();
     });
-    
     expect(screen.getByText('Success message')).toBeInTheDocument();
 
-    const closeButtons = screen.getAllByRole('button');
-    // The first 4 buttons are from TestComponent, the 5th should be the ToastClose
+    // Closing - this triggers handleOpenChange(false)
+    const closeBtn = screen.getByRole('button', { name: /Fechar/i });
     act(() => {
-      closeButtons[4].click();
+      closeBtn.click();
     });
 
-    // Wait for the timeout in handleOpenChange (1000ms)
+    // Advance time to trigger setTimeout(onRemove, 1000)
     act(() => {
-      vi.advanceTimersByTime(1100);
+      vi.advanceTimersByTime(1000);
     });
 
+    // Now it should definitely be gone from the provider's state
     expect(screen.queryByText('Success message')).not.toBeInTheDocument();
     
     vi.useRealTimers();

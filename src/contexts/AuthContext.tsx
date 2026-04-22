@@ -1,5 +1,6 @@
 import { api } from '@/lib/axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getRolePermissions } from '@/utils/validation';
 import React, { createContext, useContext } from 'react';
 
 interface Permission {
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasPermission = (feature: string, action: keyof Omit<Permission, 'feature'>) => {
     if (!user || !user.role) return false;
-    const permissions = user.role.permissions || [];
+    const permissions = getRolePermissions(user.role) as Permission[];
     const permission = permissions.find(p => p.feature === feature);
     return permission ? !!permission[action] : false;
   };

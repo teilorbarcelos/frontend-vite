@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
-import { FilterDrawer, FilterField } from '../FilterDrawer';
+import { describe, expect, it, vi } from 'vitest';
+import { FilterDrawer, type FilterField } from '../FilterDrawer';
 
 describe('FilterDrawer', () => {
   const fields: FilterField[] = [
@@ -59,27 +59,6 @@ describe('FilterDrawer', () => {
       name: 'John',
       status: 'true'
     });
-  });
-
-  it('handles date range filtering on submit', async () => {
-    const onFilter = vi.fn();
-    const user = userEvent.setup();
-    render(
-      <FilterDrawer 
-        isOpen={true} 
-        onClose={() => {}} 
-        fields={fields} 
-        onFilter={onFilter} 
-      />
-    );
-
-    // Mock DateRangePicker trigger
-    const range = { from: new Date(2024, 0, 1), to: new Date(2024, 0, 31) };
-    
-    // We can't easily interact with the DateRangePicker in this integration test
-    // without more mocks, but we can check the logic if we can somehow set the value.
-    // However, I'll try to find the "Selecione uma data" button and click it, 
-    // but then I'd need to mock the Popover/Calendar.
   });
 
   it('triggers onFilter with formatted dates when date range is provided', async () => {
@@ -200,5 +179,113 @@ describe('FilterDrawer', () => {
     await user.click(day);
     await user.click(screen.getByText('Aplicar'));
     expect(onFilter).toHaveBeenCalled();
+  });
+
+  it('handles only end date in initial values', () => {
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={vi.fn()}
+        fields={fields}
+        initialValues={{ date_end: '2023-12-31' }}
+      />
+    );
+    expect(screen.getByText('Selecione um período')).toBeInTheDocument();
+  });
+
+  it('handles range without "to" in submission (explicitly)', async () => {
+    const onFilter = vi.fn();
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    const user = userEvent.setup();
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={onFilter}
+        fields={fields}
+      />
+    );
+    
+    await user.click(screen.getByText('Selecione um período'));
+    await user.click(screen.getByText('10'));
+    await user.click(screen.getByText('Aplicar'));
+    
+    expect(onFilter).toHaveBeenCalledWith({
+      date_start: expect.stringMatching(/\d{4}-\d{2}-10/),
+      date_end: expect.stringMatching(/\d{4}-\d{2}-10/)
+    });
+  });
+
+  it('handles empty range in submission', async () => {
+    const onFilter = vi.fn();
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={onFilter}
+        fields={fields}
+        initialValues={{ date: {} }} 
+      />
+    );
+    
+    await userEvent.click(screen.getByText('Aplicar'));
+    expect(onFilter).toHaveBeenCalledWith({});
+  });
+
+  it('handles full date range in submission', async () => {
+    const onFilter = vi.fn();
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={onFilter}
+        fields={fields}
+        initialValues={{ date_start: '2023-01-01', date_end: '2023-01-31' }}
+      />
+    );
+    
+    await userEvent.click(screen.getByText('Aplicar'));
+    expect(onFilter).toHaveBeenCalledWith({
+      date_start: '2023-01-01',
+      date_end: '2023-01-31'
+    });
+  });
+
+  it('handles selecting both dates in the picker', async () => {
+    const onFilter = vi.fn();
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    const user = userEvent.setup();
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={onFilter}
+        fields={fields}
+      />
+    );
+    
+    await user.click(screen.getByText('Selecione um período'));
+    await user.click(screen.getByText('10')); // From
+    await user.click(screen.getByText('20')); // To
+    await user.click(screen.getByText('Aplicar'));
+    
+    expect(onFilter).toHaveBeenCalledWith({
+      date_start: expect.stringMatching(/\d{4}-\d{2}-10/),
+      date_end: expect.stringMatching(/\d{4}-\d{2}-20/)
+    });
   });
 });

@@ -1,4 +1,5 @@
-import { format, parseISO } from 'date-fns';
+import { formatDateRange } from '@/utils/validation';
+import { parseISO } from 'date-fns';
 import { Filter } from 'lucide-react';
 import { useMemo } from 'react';
 import type { DateRange } from 'react-day-picker';
@@ -70,8 +71,8 @@ export function FilterDrawer({
         delete formattedData[field.name];
         
         if (range?.from) {
-          formattedData[`${field.name}_start`] = format(range.from, 'yyyy-MM-dd');
-          formattedData[`${field.name}_end`] = format(range.to || range.from, 'yyyy-MM-dd');
+          const dates = formatDateRange(field.name, range.from, range.to);
+          Object.assign(formattedData, dates);
         }
       }
     });

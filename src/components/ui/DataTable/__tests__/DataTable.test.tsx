@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { DataTable } from '../DataTable';
-import type { DataTableHeaderMap } from '../types';
+import type { HeaderMapItem } from '../types';
 
 describe('DataTable', () => {
   const mockData = [
@@ -10,7 +10,7 @@ describe('DataTable', () => {
     { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
   ];
 
-  const headerMap: DataTableHeaderMap<typeof mockData[0]>[] = [
+  const headerMap: HeaderMapItem<typeof mockData[0]>[] = [
     { title: 'Name', keyItem: 'name', sortable: true },
     { title: 'Email', keyItem: 'email' },
   ];
@@ -102,7 +102,7 @@ describe('DataTable', () => {
   });
 
   it('truncates values with tooltip', async () => {
-    const headersWithTruncate: DataTableHeaderMap<typeof mockData[0]>[] = [
+    const headersWithTruncate: HeaderMapItem<typeof mockData[0]>[] = [
       { title: 'Name', keyItem: 'name', truncate: true },
     ];
 
@@ -177,6 +177,29 @@ describe('DataTable', () => {
     expect(onChange).toHaveBeenCalledWith({
       orderBy: undefined,
       orderDirection: undefined
+    });
+  });
+
+  it('handles clicking a column that is already active but has no direction', () => {
+    const onSortChange = vi.fn();
+    render(
+      <DataTable 
+        data={mockData} 
+        headerMap={headerMap} 
+        totalItems={2}
+        sorting={{
+          value: { orderBy: 'name', orderDirection: undefined },
+          onChange: onSortChange
+        }}
+      />
+    );
+
+    const nameHeader = screen.getByText('Name');
+    fireEvent.click(nameHeader);
+
+    expect(onSortChange).toHaveBeenCalledWith({
+      orderBy: 'name',
+      orderDirection: 'asc'
     });
   });
 

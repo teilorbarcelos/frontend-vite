@@ -169,4 +169,33 @@ describe('ProductListPage', () => {
       expect(screen.getByText('Erro ao carregar produtos')).toBeInTheDocument();
     });
   });
+
+  it('handles delete mutation error without message', async () => {
+    const user = userEvent.setup();
+    (productService.deleteProduct as Mock).mockRejectedValue({});
+    renderWithProviders(<ProductListPage />);
+    
+    await waitFor(() => screen.getByText('Product A'));
+    await user.click(screen.getAllByRole('button', { name: /Abrir menu/i })[0]);
+    await user.click(await screen.findByText('Excluir'));
+    await user.click(await screen.findByRole('button', { name: /^Excluir$/ }));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao excluir produto.')).toBeInTheDocument();
+    });
+  });
+
+  it('handles toggle status mutation error without message', async () => {
+    const user = userEvent.setup();
+    (productService.toggleStatus as Mock).mockRejectedValue({});
+    renderWithProviders(<ProductListPage />);
+    
+    await waitFor(() => screen.getByText('Product A'));
+    const statusButtons = screen.getAllByRole('button', { name: /Ativo/i });
+    await user.click(statusButtons[0]);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao atualizar status.')).toBeInTheDocument();
+    });
+  });
 });

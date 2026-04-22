@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { isPageInRange } from '@/utils/validation';
 import {
   Check,
   ChevronDown,
@@ -27,9 +28,7 @@ export function Pagination({
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS
 }: PaginationProps) {
   const handlePageChange = (page: number) => {
-    if (page >= 0 && page < totalPages) {
-      onPageChange(page);
-    }
+    void (isPageInRange(page, totalPages) && onPageChange(page));
   };
 
   if (totalPages <= 1 && !onPageSizeChange) return null;

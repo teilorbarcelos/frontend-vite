@@ -201,7 +201,7 @@ describe('Pagination', () => {
 
   it('does not call onPageChange for invalid pages', () => {
     const onPageChange = vi.fn();
-    render(
+    const { rerender } = render(
       <Pagination
         currentPage={0}
         totalPages={5}
@@ -210,7 +210,61 @@ describe('Pagination', () => {
     );
     
     const prevBtn = screen.getByTitle('Anterior');
+    prevBtn.removeAttribute('disabled');
     fireEvent.click(prevBtn);
+    expect(onPageChange).not.toHaveBeenCalled();
+
+    rerender(
+      <Pagination
+        currentPage={4}
+        totalPages={5}
+        onPageChange={onPageChange}
+      />
+    );
+    const nextBtn = screen.getByTitle('Próximo');
+    nextBtn.removeAttribute('disabled');
+    fireEvent.click(nextBtn);
+    expect(onPageChange).not.toHaveBeenCalled();
+  });
+
+  it('handles zero total pages correctly', () => {
+    const onPageChange = vi.fn();
+    render(
+      <Pagination
+        currentPage={0}
+        totalPages={0}
+        onPageChange={onPageChange}
+      />
+    );
+    expect(screen.queryByTitle('Próximo')).toBeNull();
+  });
+
+  it('handlePageChange prevents out of bounds calls', () => {
+    const onPageChange = vi.fn();
+    const { rerender } = render(
+      <Pagination
+        currentPage={0}
+        totalPages={5}
+        onPageChange={onPageChange}
+      />
+    );
+    
+    // We force a click on "Anterior" by removing disabled
+    const prevBtn = screen.getByTitle('Anterior');
+    prevBtn.removeAttribute('disabled');
+    fireEvent.click(prevBtn);
+    expect(onPageChange).not.toHaveBeenCalled();
+
+    rerender(
+      <Pagination
+        currentPage={4}
+        totalPages={5}
+        onPageChange={onPageChange}
+      />
+    );
+    const nextBtn = screen.getByTitle('Próximo');
+    nextBtn.removeAttribute('disabled');
+    fireEvent.click(nextBtn);
     expect(onPageChange).not.toHaveBeenCalled();
   });
 });

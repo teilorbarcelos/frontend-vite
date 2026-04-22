@@ -1,10 +1,10 @@
-import { render } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
-import { ReactNode } from 'react';
-import { ToastProvider } from '@/providers/ToastProvider';
-import { LoadingProvider } from '@/contexts/LoadingContext';
 import { AuthContext } from '@/contexts/AuthContext';
+import { LoadingProvider } from '@/contexts/LoadingContext';
+import { ToastProvider } from '@/providers/ToastProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 
 const createTestQueryClient = () => new QueryClient({
   defaultOptions: {
@@ -19,7 +19,6 @@ export function renderWithProviders(ui: ReactNode) {
   return render(
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={{
-        // @ts-expect-error - mock user
         user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
         isAuthenticated: true,
         isLoading: false,

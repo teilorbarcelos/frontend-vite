@@ -176,4 +176,66 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
     });
   });
+
+  it('returns false for hasPermission when user is not logged in', async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
+  });
+
+  it('handles user with undefined permissions', async () => {
+    localStorage.setItem('token', 'valid-token');
+    (api.get as any).mockResolvedValue({ 
+      data: { 
+        user: { 
+          id: '1', 
+          name: 'John', 
+          role: { permissions: undefined }
+        } 
+      } 
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
+    });
+  });
+
+  it('handles user with null permissions explicitly', async () => {
+    localStorage.setItem('token', 'valid-token');
+    (api.get as any).mockResolvedValue({ 
+      data: { 
+        user: { 
+          id: '1', 
+          name: 'John', 
+          role: { permissions: null }
+        } 
+      } 
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
+    });
+  });
 });
