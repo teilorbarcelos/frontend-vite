@@ -145,4 +145,60 @@ describe('FilterDrawer', () => {
 
     expect(onFilter).toHaveBeenCalledWith({});
   });
+
+  it('calls onClose when closed via drawer mechanism', async () => {
+    const onClose = vi.fn();
+    render(
+      <FilterDrawer 
+        isOpen={true} 
+        onClose={onClose} 
+        fields={fields} 
+        onFilter={() => {}} 
+      />
+    );
+
+    // Click the close button (the X icon which has "Fechar" as screen reader text)
+    await userEvent.click(screen.getByText('Fechar'));
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('handles partial initial date values', () => {
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={vi.fn()}
+        fields={fields}
+        initialValues={{ date_start: '2023-01-01' }}
+      />
+    );
+    expect(screen.getByText('01/01/2023')).toBeInTheDocument();
+  });
+
+  it('handles missing "to" date in submission', async () => {
+    const user = userEvent.setup();
+    const onFilter = vi.fn();
+    const fields: FilterField[] = [
+      { name: 'date', label: 'Date', type: 'dateRange' }
+    ];
+    render(
+      <FilterDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        onFilter={onFilter}
+        fields={fields}
+      />
+    );
+    
+    const trigger = screen.getByText('Selecione um período');
+    await user.click(trigger);
+    const day = screen.getByText('15');
+    await user.click(day);
+    await user.click(screen.getByText('Aplicar'));
+    expect(onFilter).toHaveBeenCalled();
+  });
 });

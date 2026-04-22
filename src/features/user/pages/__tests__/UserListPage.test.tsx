@@ -1,10 +1,9 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserListPage } from '../UserListPage';
 import { renderWithProviders } from '@/test/utils';
 import { userService } from '../../services/user.service';
-import { useAuth } from '@/contexts/AuthContext';
 
 // Mock dependencies
 vi.mock('../../services/user.service', () => ({
@@ -23,7 +22,7 @@ describe('UserListPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (userService.getUsers as any).mockResolvedValue({
+    (userService.getUsers as vi.Mock).mockResolvedValue({
       items: mockUsers,
       total: 2,
     });
@@ -49,7 +48,7 @@ describe('UserListPage', () => {
   });
 
   it('shows error state if fetch fails', async () => {
-    (userService.getUsers as any).mockRejectedValue(new Error('Fetch failed'));
+    (userService.getUsers as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
     
     renderWithProviders(<UserListPage />);
     
@@ -60,7 +59,7 @@ describe('UserListPage', () => {
 
   it('triggers delete mutation when delete is clicked', async () => {
     const user = userEvent.setup();
-    (userService.deleteUser as any).mockResolvedValue({});
+    (userService.deleteUser as vi.Mock).mockResolvedValue({});
     renderWithProviders(<UserListPage />);
     
     await waitFor(() => screen.getByText('John Doe'));
@@ -84,7 +83,7 @@ describe('UserListPage', () => {
 
   it('triggers toggle status mutation', async () => {
     const user = userEvent.setup();
-    (userService.toggleStatus as any).mockResolvedValue({});
+    (userService.toggleStatus as vi.Mock).mockResolvedValue({});
     renderWithProviders(<UserListPage />);
     
     await waitFor(() => screen.getByText('John Doe'));
@@ -115,6 +114,31 @@ describe('UserListPage', () => {
     expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument();
   });
 
+  it('shows badge when filters are active', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<UserListPage />);
+    
+    const filterButton = screen.getByText('Filtros');
+    await user.click(filterButton);
+    
+    const statusSelect = screen.getByLabelText(/Status/i);
+    await user.selectOptions(statusSelect, 'true');
+    
+    const applyButton = screen.getByText('Aplicar');
+    await user.click(applyButton);
+    
+    // Wait for drawer to close
+    await waitFor(() => {
+      expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument();
+    });
+    
+    await waitFor(() => {
+      const filterButtonAfter = screen.getByRole('button', { name: /Filtros/i });
+      const badge = within(filterButtonAfter).queryByText('1');
+      expect(badge).toBeInTheDocument();
+    });
+  });
+
   it('triggers search when search input changes', async () => {
     const user = userEvent.setup();
     renderWithProviders(<UserListPage />);
@@ -130,7 +154,7 @@ describe('UserListPage', () => {
 
   it('handles delete mutation error', async () => {
     const user = userEvent.setup();
-    (userService.deleteUser as any).mockRejectedValue({
+    (userService.deleteUser as vi.Mock).mockRejectedValue({
       response: { data: { message: 'Delete failed' } }
     });
     renderWithProviders(<UserListPage />);
@@ -140,12 +164,14 @@ describe('UserListPage', () => {
     await user.click(await screen.findByText('Excluir'));
     await user.click(await screen.findByRole('button', { name: /^Excluir$/ }));
     
-    // Toast error should be called (can't easily check toast without more mocks, but we check if code is covered)
+    await waitFor(() => {
+      expect(screen.getByText('Delete failed')).toBeInTheDocument();
+    });
   });
 
   it('handles toggle status mutation error', async () => {
     const user = userEvent.setup();
-    (userService.toggleStatus as any).mockRejectedValue({
+    (userService.toggleStatus as vi.Mock).mockRejectedValue({
       response: { data: { message: 'Toggle failed' } }
     });
     renderWithProviders(<UserListPage />);
@@ -153,6 +179,10 @@ describe('UserListPage', () => {
     await waitFor(() => screen.getByText('John Doe'));
     const statusButtons = screen.getAllByRole('button', { name: /Ativo/i });
     await user.click(statusButtons[0]);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Toggle failed')).toBeInTheDocument();
+    });
   });
 
   it('navigates to edit user page', async () => {
@@ -167,8 +197,42 @@ describe('UserListPage', () => {
     
     const editOption = await screen.findByText('Editar');
     await user.click(editOption);
+  });
+
+  it('handles delete mutation error without response message', async () => {
+    const user = userEvent.setup();
+    (userService.deleteUser as vi.Mock).mockRejectedValue({});
+    renderWithProviders(<UserListPage />);
     
-    // We can't easily check navigate call because it's not mocked in this file's setup yet, 
-    // but the code will be covered.
+    await waitFor(() => screen.getByText('John Doe'));
+    await user.click(screen.getAllByRole('button', { name: /Abrir menu/i })[0]);
+    await user.click(await screen.findByText('Excluir'));
+    await user.click(await screen.findByRole('button', { name: /^Excluir$/ }));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao excluir usuário.')).toBeInTheDocument();
+    });
+  });
+
+  it('handles toggle status mutation error without response message', async () => {
+    const user = userEvent.setup();
+    (userService.toggleStatus as vi.Mock).mockRejectedValue(new Error('Network error'));
+    renderWithProviders(<UserListPage />);
+    
+    await waitFor(() => screen.getByText('John Doe'));
+    const statusButtons = screen.getAllByRole('button', { name: /Ativo/i });
+    await user.click(statusButtons[0]);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao atualizar status.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error state when fetching fails', async () => {
+    (userService.getUsers as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
+    renderWithProviders(<UserListPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao carregar usuários')).toBeInTheDocument();
+    });
   });
 });

@@ -71,4 +71,24 @@ describe('SearchInput', () => {
     expect(onSearch).toHaveBeenCalledTimes(1);
     expect(onSearch).toHaveBeenCalledWith('ab');
   });
+
+  it('cancels pending timeout when cleared', async () => {
+    const onSearch = vi.fn();
+    render(<SearchInput onSearch={onSearch} />);
+    const input = screen.getByPlaceholderText('Pesquisar...');
+
+    fireEvent.change(input, { target: { value: 'test' } });
+    
+    const clearButton = screen.getByRole('button');
+    fireEvent.click(clearButton);
+
+    expect(onSearch).toHaveBeenCalledWith('');
+    
+    // Advance time to ensure the 'test' search wasn't triggered
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(onSearch).toHaveBeenCalledTimes(1); // Only the one with ''
+  });
 });

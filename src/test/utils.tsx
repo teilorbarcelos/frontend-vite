@@ -19,7 +19,8 @@ export function renderWithProviders(ui: ReactNode) {
   return render(
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={{
-        user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } } as any,
+        // @ts-expect-error - mock user
+        user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
         isAuthenticated: true,
         isLoading: false,
         login: () => {},

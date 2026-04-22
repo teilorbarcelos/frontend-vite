@@ -176,4 +176,41 @@ describe('Pagination', () => {
     fireEvent.click(mobileNext);
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
+
+  it('handles pageSize being undefined in info text', () => {
+    render(
+      <Pagination 
+        currentPage={0} 
+        totalPages={1} 
+        onPageChange={vi.fn()} 
+        totalItems={10}
+        onPageSizeChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText((_content, element) => {
+      const hasText = (node: Element) => node.textContent === 'Exibindo 1 até 0 de 10';
+      const nodeHasText = element ? hasText(element) : false;
+      const childrenDontHaveText = Array.from(element?.children || []).every(
+        (child) => !hasText(child)
+      );
+      return nodeHasText && childrenDontHaveText;
+    })).toBeInTheDocument();
+    expect(screen.getAllByText('0').length).toBeGreaterThan(0);
+  });
+
+  it('does not call onPageChange for invalid pages', () => {
+    const onPageChange = vi.fn();
+    render(
+      <Pagination
+        currentPage={0}
+        totalPages={5}
+        onPageChange={onPageChange}
+      />
+    );
+    
+    const prevBtn = screen.getByTitle('Anterior');
+    fireEvent.click(prevBtn);
+    expect(onPageChange).not.toHaveBeenCalled();
+  });
 });

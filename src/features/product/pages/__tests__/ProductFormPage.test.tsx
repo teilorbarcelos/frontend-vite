@@ -28,8 +28,8 @@ describe('ProductFormPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as any).mockReturnValue({ id: 'new' });
-    (useNavigate as any).mockReturnValue(mockNavigate);
+    (useParams as vi.Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as vi.Mock).mockReturnValue(mockNavigate);
   });
 
   it('renders "New Product" title', () => {
@@ -39,7 +39,7 @@ describe('ProductFormPage', () => {
 
   it('submits correctly for new product', async () => {
     const user = userEvent.setup();
-    (productService.createProduct as any).mockResolvedValue({});
+    (productService.createProduct as vi.Mock).mockResolvedValue({});
     renderWithProviders(<ProductFormPage />);
     
     await user.type(screen.getByLabelText(/Name/i), 'New Product');
@@ -60,9 +60,9 @@ describe('ProductFormPage', () => {
   it('submits correctly in edit mode', async () => {
     const user = userEvent.setup();
     const mockProduct = { id: '1', name: 'Product A', price: 100, sku: 'S1', category: 'C1', stock: 5, description: 'D1' };
-    (useParams as any).mockReturnValue({ id: '1' });
-    (productService.getProduct as any).mockResolvedValue(mockProduct);
-    (productService.updateProduct as any).mockResolvedValue({});
+    (useParams as vi.Mock).mockReturnValue({ id: '1' });
+    (productService.getProduct as vi.Mock).mockResolvedValue(mockProduct);
+    (productService.updateProduct as vi.Mock).mockResolvedValue({});
 
     renderWithProviders(<ProductFormPage />);
     
@@ -89,10 +89,10 @@ describe('ProductFormPage', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(2);
   });
 
-  it('handles submission error', async () => {
+  it('handles submission error with message', async () => {
     const user = userEvent.setup();
-    (productService.createProduct as any).mockRejectedValue({
-      response: { data: { message: 'API Error' } }
+    (productService.createProduct as vi.Mock).mockRejectedValue({
+      response: { data: { message: 'API Error Message' } }
     });
     
     renderWithProviders(<ProductFormPage />);
@@ -106,8 +106,40 @@ describe('ProductFormPage', () => {
 
     await user.click(screen.getByText('Save Product'));
     
+    expect(await screen.findByText(/API Error Message/i)).toBeInTheDocument();
+  });
+
+  it('handles submission error without message', async () => {
+    const user = userEvent.setup();
+    (productService.createProduct as vi.Mock).mockRejectedValue(new Error('Generic Error'));
+    
+    renderWithProviders(<ProductFormPage />);
+    
+    await user.type(screen.getByLabelText(/Name/i), 'New Product');
+    await user.type(screen.getByLabelText(/SKU/i), 'SKU-1');
+    await user.type(screen.getByLabelText(/Category/i), 'C1');
+    await user.type(screen.getByLabelText(/Price/i), '150');
+    await user.type(screen.getByLabelText(/Stock/i), '10');
+    await user.type(screen.getByLabelText(/Description/i), 'Desc');
+
+    await user.click(screen.getByText('Save Product'));
+    
     await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
+      expect(screen.getByText('Erro ao salvar produto. Tente novamente.')).toBeInTheDocument();
     });
+  });
+
+  it('shows "Saving..." text when mutation is pending', async () => {
+    const user = userEvent.setup();
+    (productService.createProduct as vi.Mock).mockReturnValue(new Promise(() => {}));
+    renderWithProviders(<ProductFormPage />);
+    await user.type(screen.getByLabelText(/Name/i), 'New Product');
+    await user.type(screen.getByLabelText(/SKU/i), 'SKU-1');
+    await user.type(screen.getByLabelText(/Category/i), 'C1');
+    await user.type(screen.getByLabelText(/Price/i), '150');
+    await user.type(screen.getByLabelText(/Stock/i), '10');
+    await user.type(screen.getByLabelText(/Description/i), 'Test Description');
+    await user.click(screen.getByText('Save Product'));
+    expect(screen.getByText('Saving...')).toBeInTheDocument();
   });
 });

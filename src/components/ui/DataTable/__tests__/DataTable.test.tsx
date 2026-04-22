@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { DataTable } from '../DataTable';
 import type { DataTableHeaderMap } from '../types';
@@ -117,24 +118,76 @@ describe('DataTable', () => {
     expect(truncatedCell).toHaveClass('truncate');
   });
 
-  it('renders pagination when props are provided', () => {
+  it('does nothing on header click if sorting is not provided', () => {
+    render(
+      <DataTable 
+        data={mockData} 
+        headerMap={headerMap} 
+        totalItems={2}
+      />
+    );
+    const nameHeader = screen.getByText('Name');
+    fireEvent.click(nameHeader);
+    // Should not call any mock or throw error
+  });
+
+  it('resets page to 0 when sorting changes', () => {
     const onPageChange = vi.fn();
+    const onSortChange = vi.fn();
     render(
       <DataTable 
         data={mockData} 
         headerMap={headerMap} 
         totalItems={100}
+        sorting={{
+          value: { orderBy: undefined, orderDirection: undefined },
+          onChange: onSortChange
+        }}
         paginationProps={{
-          currentPage: 0,
+          currentPage: 2,
           totalPages: 4,
           pageSize: 25,
           onPageChange,
-          onPageSizeChange: vi.fn(),
           totalItems: 100
         }}
       />
     );
 
-    expect(screen.getByText(/Exibindo/)).toBeInTheDocument();
+    const nameHeader = screen.getByText('Name');
+    fireEvent.click(nameHeader);
+
+    expect(onPageChange).toHaveBeenCalledWith(0);
+  });
+
+  it('cycles sort direction to undefined', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <DataTable
+        headerMap={[{ title: 'Name', keyItem: 'name', sortable: true }]}
+        data={[{ name: 'Test' }]}
+        sorting={{
+          value: { orderBy: 'name', orderDirection: 'desc' },
+          onChange
+        }}
+      />
+    );
+    
+    await user.click(screen.getByText('Name'));
+    expect(onChange).toHaveBeenCalledWith({
+      orderBy: undefined,
+      orderDirection: undefined
+    });
+  });
+
+  it('renders nothing when no paginationProps is provided', () => {
+    const { container } = render(
+      <DataTable 
+        data={mockData} 
+        headerMap={headerMap} 
+        totalItems={2}
+      />
+    );
+    expect(container.querySelector('nav')).toBeNull();
   });
 });

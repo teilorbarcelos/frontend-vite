@@ -1,6 +1,6 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { ProductListPage } from '../ProductListPage';
 import { renderWithProviders } from '@/test/utils';
 import { productService } from '../../services/product.service';
@@ -21,7 +21,7 @@ describe('ProductListPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (productService.getProducts as any).mockResolvedValue({
+    (productService.getProducts as Mock).mockResolvedValue({
       items: mockProducts,
       total: 2,
     });
@@ -38,7 +38,7 @@ describe('ProductListPage', () => {
 
   it('triggers delete mutation', async () => {
     const user = userEvent.setup();
-    (productService.deleteProduct as any).mockResolvedValue({});
+    (productService.deleteProduct as Mock).mockResolvedValue({});
     renderWithProviders(<ProductListPage />);
     await waitFor(() => screen.getByText('Product A'));
     await user.click(screen.getAllByRole('button', { name: /Abrir menu/i })[0]);
@@ -56,7 +56,7 @@ describe('ProductListPage', () => {
 
   it('triggers toggle status mutation', async () => {
     const user = userEvent.setup();
-    (productService.toggleStatus as any).mockResolvedValue({});
+    (productService.toggleStatus as Mock).mockResolvedValue({});
     renderWithProviders(<ProductListPage />);
     
     await waitFor(() => screen.getByText('Product A'));
@@ -84,6 +84,30 @@ describe('ProductListPage', () => {
     expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument();
   });
 
+  it('shows badge when filters are active', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ProductListPage />);
+    
+    const filterButton = screen.getByText('Filtros');
+    await user.click(filterButton);
+    
+    const statusSelect = screen.getByLabelText(/Status/i);
+    await user.selectOptions(statusSelect, 'true');
+    
+    const applyButton = screen.getByText('Aplicar');
+    await user.click(applyButton);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      const filterButtonAfter = screen.getByRole('button', { name: /Filtros/i });
+      const badge = within(filterButtonAfter).queryByText('1');
+      expect(badge).toBeInTheDocument();
+    });
+  });
+
   it('triggers search when search input changes', async () => {
     const user = userEvent.setup();
     renderWithProviders(<ProductListPage />);
@@ -98,7 +122,7 @@ describe('ProductListPage', () => {
 
   it('handles delete mutation error', async () => {
     const user = userEvent.setup();
-    (productService.deleteProduct as any).mockRejectedValue({
+    (productService.deleteProduct as Mock).mockRejectedValue({
       response: { data: { message: 'Delete failed' } }
     });
     renderWithProviders(<ProductListPage />);
@@ -107,6 +131,10 @@ describe('ProductListPage', () => {
     await user.click(screen.getAllByRole('button', { name: /Abrir menu/i })[0]);
     await user.click(await screen.findByText('Excluir'));
     await user.click(await screen.findByRole('button', { name: /^Excluir$/ }));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Delete failed')).toBeInTheDocument();
+    });
   });
 
   it('navigates to edit product page', async () => {
@@ -118,5 +146,27 @@ describe('ProductListPage', () => {
     await user.click(menuTriggers[0]);
     const editOption = await screen.findByText('Editar');
     await user.click(editOption);
+  });
+
+  it('handles toggle status mutation error', async () => {
+    const user = userEvent.setup();
+    (productService.toggleStatus as Mock).mockRejectedValue(new Error('Toggle failed'));
+    renderWithProviders(<ProductListPage />);
+    
+    await waitFor(() => screen.getByText('Product A'));
+    const statusButtons = screen.getAllByRole('button', { name: /Ativo/i });
+    await user.click(statusButtons[0]);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao atualizar status.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error state when fetching fails', async () => {
+    (productService.getProducts as Mock).mockRejectedValue(new Error('Fetch failed'));
+    renderWithProviders(<ProductListPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao carregar produtos')).toBeInTheDocument();
+    });
   });
 });

@@ -32,9 +32,9 @@ describe('RoleFormPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as any).mockReturnValue({ id: 'new' });
-    (useNavigate as any).mockReturnValue(mockNavigate);
-    (roleService.getFeatures as any).mockResolvedValue(mockFeatures);
+    (useParams as vi.Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as vi.Mock).mockReturnValue(mockNavigate);
+    (roleService.getFeatures as vi.Mock).mockResolvedValue(mockFeatures);
   });
 
   it('renders correctly', async () => {
@@ -47,7 +47,7 @@ describe('RoleFormPage', () => {
 
   it('submits correctly for new role', async () => {
     const user = userEvent.setup();
-    (roleService.createRole as any).mockResolvedValue({});
+    (roleService.createRole as vi.Mock).mockResolvedValue({});
     renderWithProviders(<RoleFormPage />);
     
     await waitFor(() => screen.getByLabelText(/Nome do Perfil/i));
@@ -73,9 +73,9 @@ describe('RoleFormPage', () => {
       description: 'Desc',
       RoleFeature: [{ id_feature: 'f1', view: true, create: false, delete: false, activate: false }]
     };
-    (useParams as any).mockReturnValue({ id: '1' });
-    (roleService.getRole as any).mockResolvedValue(mockRole);
-    (roleService.updateRole as any).mockResolvedValue({});
+    (useParams as vi.Mock).mockReturnValue({ id: '1' });
+    (roleService.getRole as vi.Mock).mockResolvedValue(mockRole);
+    (roleService.updateRole as vi.Mock).mockResolvedValue({});
 
     renderWithProviders(<RoleFormPage />);
     
@@ -103,10 +103,10 @@ describe('RoleFormPage', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(2);
   });
 
-  it('handles submission error', async () => {
+  it('handles submission error with message', async () => {
     const user = userEvent.setup();
-    (roleService.createRole as any).mockRejectedValue({
-      response: { data: { message: 'API Error' } }
+    (roleService.createRole as vi.Mock).mockRejectedValue({
+      response: { data: { message: 'API Error Message' } }
     });
     
     renderWithProviders(<RoleFormPage />);
@@ -117,8 +117,34 @@ describe('RoleFormPage', () => {
 
     await user.click(screen.getByText('Salvar Perfil'));
     
+    expect(await screen.findByText(/API Error Message/i)).toBeInTheDocument();
+  });
+
+  it('handles submission error without message', async () => {
+    const user = userEvent.setup();
+    (roleService.createRole as vi.Mock).mockRejectedValue(new Error('Generic Error'));
+    
+    renderWithProviders(<RoleFormPage />);
+    
+    await waitFor(() => screen.getByLabelText(/Nome do Perfil/i));
+    await user.type(screen.getByLabelText(/Nome do Perfil/i), 'Admin');
+    await user.type(screen.getByLabelText(/Descrição/i), 'Desc');
+
+    await user.click(screen.getByText('Salvar Perfil'));
+    
     await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
+      expect(screen.getByText('Erro ao salvar perfil. Tente novamente.')).toBeInTheDocument();
     });
+  });
+
+  it('shows "Salvando..." text when mutation is pending', async () => {
+    const user = userEvent.setup();
+    (roleService.createRole as vi.Mock).mockReturnValue(new Promise(() => {}));
+    renderWithProviders(<RoleFormPage />);
+    await waitFor(() => screen.getByLabelText(/Nome do Perfil/i));
+    await user.type(screen.getByLabelText(/Nome do Perfil/i), 'Admin');
+    await user.type(screen.getByLabelText(/Descrição/i), 'Test Description');
+    await user.click(screen.getByText('Salvar Perfil'));
+    expect(screen.getByText('Salvando...')).toBeInTheDocument();
   });
 });

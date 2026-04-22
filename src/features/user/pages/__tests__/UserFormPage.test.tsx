@@ -1,4 +1,4 @@
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserFormPage } from '../UserFormPage';
@@ -37,10 +37,10 @@ describe('UserFormPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as any).mockReturnValue({ id: 'new' });
-    (useNavigate as any).mockReturnValue(mockNavigate);
-    (roleService.mageSelect as any).mockResolvedValue({ items: [{ id: 'role-1', name: 'Admin' }], hasMore: false });
-    (roleService.mageHydrate as any).mockResolvedValue([{ id: 'role-1', name: 'Admin' }]);
+    (useParams as vi.Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as vi.Mock).mockReturnValue(mockNavigate);
+    (roleService.mageSelect as vi.Mock).mockResolvedValue({ items: [{ id: 'role-1', name: 'Admin' }], hasMore: false });
+    (roleService.mageHydrate as vi.Mock).mockResolvedValue([{ id: 'role-1', name: 'Admin' }]);
   });
 
   it('renders "New User" title and empty fields', () => {
@@ -50,7 +50,7 @@ describe('UserFormPage', () => {
 
   it('submits correctly for new user', async () => {
     const user = userEvent.setup();
-    (userService.createUser as any).mockResolvedValue({});
+    (userService.createUser as vi.Mock).mockResolvedValue({});
     
     renderWithProviders(<UserFormPage />);
     
@@ -98,9 +98,9 @@ describe('UserFormPage', () => {
   it('submits correctly for existing user', async () => {
     const user = userEvent.setup();
     const mockUser = { id: '1', name: 'John Doe', email: 'john@example.com', id_role: 'role-1' };
-    (useParams as any).mockReturnValue({ id: '1' });
-    (userService.getUser as any).mockResolvedValue(mockUser);
-    (userService.updateUser as any).mockResolvedValue({});
+    (useParams as vi.Mock).mockReturnValue({ id: '1' });
+    (userService.getUser as vi.Mock).mockResolvedValue(mockUser);
+    (userService.updateUser as vi.Mock).mockResolvedValue({});
     
     renderWithProviders(<UserFormPage />);
     
@@ -132,8 +132,8 @@ describe('UserFormPage', () => {
   });
 
   it('shows error state when fetching fails', async () => {
-    (useParams as any).mockReturnValue({ id: '1' });
-    (userService.getUser as any).mockRejectedValue(new Error('Fetch failed'));
+    (useParams as vi.Mock).mockReturnValue({ id: '1' });
+    (userService.getUser as vi.Mock).mockRejectedValue(new Error('Fetch failed'));
     
     renderWithProviders(<UserFormPage />);
     
@@ -142,10 +142,10 @@ describe('UserFormPage', () => {
     });
   });
 
-  it('handles submission error', async () => {
+  it('handles submission error with message', async () => {
     const user = userEvent.setup();
-    (userService.createUser as any).mockRejectedValue({
-      response: { data: { message: 'API Error' } }
+    (userService.createUser as vi.Mock).mockRejectedValue({
+      response: { data: { message: 'API Error Message' } }
     });
     
     renderWithProviders(<UserFormPage />);
@@ -161,8 +161,42 @@ describe('UserFormPage', () => {
 
     await user.click(screen.getByRole('button', { name: /Save User/i }));
     
+    expect(await screen.findByText(/API Error Message/i)).toBeInTheDocument();
+  });
+
+  it('handles submission error without message', async () => {
+    const user = userEvent.setup();
+    (userService.createUser as vi.Mock).mockRejectedValue(new Error('Generic Error'));
+    
+    renderWithProviders(<UserFormPage />);
+    
+    await user.type(screen.getByLabelText(/Name/i), 'New User');
+    await user.type(screen.getByLabelText(/Email/i), 'new@example.com');
+    await user.type(screen.getByLabelText(/Password/i), 'password123');
+    
+    // Select role
+    await user.click(screen.getByLabelText(/Perfil/i));
+    await waitFor(() => screen.getByText('Admin'));
+    await user.click(screen.getByText('Admin'));
+
+    await user.click(screen.getByRole('button', { name: /Save User/i }));
+    
     await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
+      expect(screen.getByText('Erro ao salvar usuário. Tente novamente.')).toBeInTheDocument();
     });
+  });
+
+  it('shows "Saving..." text when mutation is pending', async () => {
+    const user = userEvent.setup();
+    (userService.createUser as vi.Mock).mockReturnValue(new Promise(() => {}));
+    renderWithProviders(<UserFormPage />);
+    await user.type(screen.getByLabelText(/Name/i), 'New User');
+    await user.type(screen.getByLabelText(/Email/i), 'new@example.com');
+    await user.type(screen.getByLabelText(/Password/i), 'password123');
+    await user.click(screen.getByLabelText(/Perfil/i));
+    await waitFor(() => screen.getByText('Admin'));
+    await user.click(screen.getByText('Admin'));
+    await user.click(screen.getByRole('button', { name: /Save User/i }));
+    expect(screen.getByText('Saving...')).toBeInTheDocument();
   });
 });

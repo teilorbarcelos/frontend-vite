@@ -126,4 +126,54 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('no-permission')).toHaveTextContent('No View');
     });
   });
+
+  it('handles user without permissions array', async () => {
+    localStorage.setItem('token', 'valid-token');
+    (api.get as any).mockResolvedValue({ 
+      data: { 
+        user: { 
+          id: '1', 
+          name: 'John', 
+          role: { permissions: null }
+        } 
+      } 
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
+    });
+  });
+
+  it('handles user without role', async () => {
+    localStorage.setItem('token', 'valid-token');
+    (api.get as any).mockResolvedValue({ 
+      data: { 
+        user: { 
+          id: '1', 
+          name: 'John',
+          role: null
+        } 
+      } 
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
+    });
+  });
 });
