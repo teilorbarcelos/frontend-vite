@@ -1,114 +1,105 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { {{nameLower}}Service } from '../services/{{nameLower}}.service';
 import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
-import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 const {{nameLower}}Schema = z.object({
-name: z.string().min(1, 'Nome é obrigatório'),
+  name: z.string().min(1, 'Nome é obrigatório'),
 });
 
 type {{nameCapitalized}}Form = z.infer<typeof {{nameLower}}Schema>;
 
-  export function {{nameCapitalized}}FormPage() {
+export function {{nameCapitalized}}FormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showLoading, hideLoading } = useLoading();
-  const { success, error: showError } = useToast();
-
   const isEditing = Boolean(id && id !== 'new');
+  const { success, error: toastError } = useToast();
 
-  const { data: item, isLoading } = useQuery({
-  queryKey: ['{{nameLower}}', id],
-  queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}(id as string),
-  enabled: isEditing,
+  const { data: item, isLoading: isLoadingItem } = useQuery({
+    queryKey: ['{{nameLower}}', id],
+    queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}(id as string),
+    enabled: isEditing,
   });
 
   const {
-  register,
-  handleSubmit,
-  formState: { errors },
+    register,
+    handleSubmit,
+    formState: { errors },
   } = useForm<{{nameCapitalized}}Form>({
     resolver: zodResolver({{nameLower}}Schema),
-    values: item,
-    defaultValues: {
-    name: '',
-    },
-    });
+    values: item ? {
+      name: item.name,
+    } : undefined,
+  });
 
-    const mutation = useMutation({
+  const { showLoading, hideLoading } = useLoading();
+
+  const mutation = useMutation({
     mutationFn: (data: {{nameCapitalized}}Form) => {
-    showLoading('Salvando registro...');
-    if (isEditing) {
-    return {{nameLower}}Service.update{{nameCapitalized}}(id as string, data);
-    }
-    return {{nameLower}}Service.create{{nameCapitalized}}(data);
+      showLoading('Salvando registro...');
+      if (isEditing) {
+        return {{nameLower}}Service.update{{nameCapitalized}}(id as string, data);
+      }
+      return {{nameLower}}Service.create{{nameCapitalized}}(data);
     },
     onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
-    success('Registro salvo com sucesso!');
-    navigate('/{{nameLower}}s');
+      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
+      hideLoading();
+      success(isEditing ? 'Atualizado com sucesso!' : 'Criado com sucesso!');
+      navigate('/{{nameLower}}s');
     },
-    onError: () => {
-    showError('Erro ao salvar o registro.');
-    },
-    onSettled: () => {
-    hideLoading();
+    onError: (err: AxiosError<{ message?: string }>) => {
+      hideLoading();
+      toastError(err.response?.data?.message || 'Erro ao salvar. Tente novamente.');
     }
-    });
+  });
 
-    const onSubmit = (data: {{nameCapitalized}}Form) => {
+  const onSubmit = (data: {{nameCapitalized}}Form) => {
     mutation.mutate(data);
-    };
+  };
 
-    if (isEditing && isLoading) return null;
+  if (isEditing && isLoadingItem) {
+    return <div className="p-8 text-center text-gray-500">Carregando dados...</div>;
+  }
 
-    return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={()=> navigate('/{{nameLower}}s')}
-            className="rounded-full"
-            >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {isEditing ? 'Editar Registro' : 'Novo Registro'}
-            </h1>
-            <p className="text-sm text-gray-500">
-              Preencha as informações abaixo
-            </p>
-          </div>
-        </div>
+  return (
+    <div className="overflow-y-auto flex-1 pb-8">
+      <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <h1 className="text-xl font-bold text-gray-900">
+          {isEditing ? 'Editar Registro' : 'Novo Registro'}
+        </h1>
+        <Button variant="ghost" onClick={() => navigate('/{{nameLower}}s')}>
+          Cancelar
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-        <div className="grid grid-cols-1 gap-6">
-          <Input label="Nome" {...register('name')} error={errors.name?.message} placeholder="Digite o nome"
-            className="max-w-md" />
-        </div>
-
-        <div className="pt-6 border-t border-gray-50 flex items-center justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={()=> navigate('/{{nameLower}}s')}
-            >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <Input
+          label="Nome"
+          {...register('name')}
+          error={errors.name?.message}
+          placeholder="Nome do registro"
+        />
+        
+        <div className="pt-4 flex justify-end space-x-3">
+          <Button type="button" variant="secondary" onClick={() => navigate('/{{nameLower}}s')}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={mutation.isPending} className="min-w-[120px]">
-            <Save className="w-4 h-4 mr-2" />
+          <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </form>
     </div>
-    );
-    }
+    </div>
+  );
+}

@@ -1,81 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Filter, Plus } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-
+import { DataTable } from '@/components/ui/DataTable';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { DataTable, DataTableActions, type HeaderMapItem } from '@/components/ui/DataTable';
-import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useDataTable } from '@/hooks/useDataTable';
 import { useToast } from '@/hooks/useToast';
-import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
-
-export const get{{nameCapitalized}}Columns = (
-  onToggleStatus: (id: string, active: boolean) => void,
-  onEdit: (id: string) => void,
-  onDelete: (id: string) => void,
-  permissions: {
-    canUpdate: boolean;
-    canDelete: boolean;
-  }
-): HeaderMapItem<{{nameCapitalized}}>[] => [
-  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
-  {
-    title: 'Status',
-    keyItem: 'active',
-    sortable: true,
-    parseItem: (active, item) => (
-      <StatusBadge 
-        active={!!active} 
-        feature="{{nameLower}}" 
-        onClick={() => onToggleStatus(item.id, !item.active)} 
-      />
-    ),
-  },
-  {
-    title: '',
-    keyItem: 'id',
-    parseItem: (id) => (
-      <DataTableActions 
-        id={id as string} 
-        onEdit={permissions.canUpdate ? onEdit : undefined} 
-        onDelete={permissions.canDelete ? onDelete : undefined}
-        deleteMessage="Tem certeza que deseja excluir este registro?"
-      />
-    ),
-  },
-];
-
-const filterFields: FilterField[] = [
-  { name: 'name', label: 'Nome', type: 'text', placeholder: 'Filtrar por nome' },
-  { 
-    name: 'active', 
-    label: 'Status', 
-    type: 'select', 
-    options: [
-      { label: 'Ativos', value: 'true' },
-      { label: 'Inativos', value: 'false' },
-    ] 
-  },
-  { name: 'created_at', label: 'Data de Criação', type: 'dateRange' },
-];
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ListPageHeader } from '@/components/ui/ListPageHeader';
+import { {{nameCapitalized}}Filters } from '../components/{{nameCapitalized}}Filters';
+import { {{upper nameLower}}_SEARCHABLE_FIELDS as searchFields } from '../constants/{{nameLower}}.constants';
+import { get{{nameCapitalized}}Columns } from '../constants/{{nameLower}}HeaderMap';
+import { {{nameLower}}Service } from '../services/{{nameLower}}.service';
 
 export function {{nameCapitalized}}ListPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { success, error: showError } = useToast();
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const { hasPermission } = useAuth();
-
-  const permissions = useMemo(() => ({
-    canCreate: hasPermission('{{nameLower}}', 'create'),
-    canUpdate: hasPermission('{{nameLower}}', 'create'),
-    canDelete: hasPermission('{{nameLower}}', 'delete'),
-  }), [hasPermission]);
-
   const {
     page,
     size,
@@ -84,30 +21,44 @@ export function {{nameCapitalized}}ListPage() {
     sort,
     handleSearch,
     handleFilter,
-    tableProps
-  } = useDataTable({
-    defaultSort: { orderBy: 'name', orderDirection: 'asc' }
-  });
+    tableProps: dataTableProps
+  } = useDataTable();
 
-  const { data, isLoading, isFetching } = useQuery({
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
+
+  const permissions = useMemo(() => ({
+    canCreate: hasPermission('{{nameLower}}', 'create'),
+    canUpdate: hasPermission('{{nameLower}}', 'create'),
+    canDelete: hasPermission('{{nameLower}}', 'delete'),
+  }), [hasPermission]);
+
+  const { data, isError, isFetching } = useQuery({
     queryKey: ['{{nameLower}}s', page, size, searchWord, filters, sort],
     queryFn: () => {{nameLower}}Service.get{{nameCapitalized}}s({
-      page,
-      size,
-      searchWord,
+      page, 
+      size, 
+      searchWord, 
+      searchFields, 
       filters,
-      sort
+      sort,
+      all: true
     }),
+    placeholderData: (prev) => prev,
   });
+
+  const { success, error: toastError } = useToast();
 
   const toggleStatusMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => {{nameLower}}Service.toggleStatus(id, active),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
-      success('Status atualizado com sucesso!');
+      success('Status atualizado!');
     },
-    onError: () => {
-      showError('Erro ao atualizar status.');
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
     }
   });
 
@@ -117,63 +68,44 @@ export function {{nameCapitalized}}ListPage() {
       queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
       success('Registro excluído com sucesso!');
     },
-    onError: () => {
-      showError('Erro ao excluir o registro.');
+    onError: (err: AxiosError<{ message?: string }>) => {
+      toastError(err.response?.data?.message || 'Erro ao excluir registro.');
     }
   });
 
   const columns = get{{nameCapitalized}}Columns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
-    (id) => navigate(`/{{nameLower}}s/${id}`),
+    (id) => navigate(`/{{nameLower}}s/update/${id}`),
     (id) => deleteMutation.mutate(id),
     permissions
   );
 
+  if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar registros</div>;
+
   return (
-    <div className="space-y-6 flex-1 flex flex-col min-h-0">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{{nameCapitalized}}s</h1>
-          <p className="text-sm text-gray-500">Gerencie os registros do sistema</p>
-        </div>
-        {permissions.canCreate && (
-          <Button onClick={() => navigate('/{{nameLower}}s/new')} className="w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Registro
-          </Button>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm shrink-0">
-        <SearchInput
-          onSearch={handleSearch}
-          placeholder="Pesquisar..."
-          className="sm:max-w-xs"
-        />
-        <Button
-          variant="outline"
-          onClick={() => setIsFilterOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <Filter className="w-4 h-4" />
-          Filtros
-        </Button>
-      </div>
-
-      <DataTable
-        {...tableProps}
-        data={data?.items || []}
-        headerMap={columns}
-        isLoading={isLoading || isFetching}
-        totalItems={data?.total || 0}
+    <div className="flex-1 flex flex-col min-h-0">
+      <ListPageHeader
+        title="{{nameCapitalized}}s"
+        onSearch={handleSearch}
+        onFilterClick={() => setIsFilterOpen(true)}
+        filterCount={Object.keys(filters).length}
+        onCreateClick={permissions.canCreate ? () => navigate('/{{nameLower}}s/new') : undefined}
+        createLabel="Novo Registro"
       />
 
-      <FilterDrawer
+      <{{nameCapitalized}}Filters
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-        fields={filterFields}
         onFilter={handleFilter}
         initialValues={filters}
+      />
+
+      <DataTable
+        {...dataTableProps}
+        data={data?.items || []}
+        headerMap={columns}
+        isLoading={isFetching}
+        totalItems={data?.total || 0}
       />
     </div>
   );

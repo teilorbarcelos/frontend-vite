@@ -1,12 +1,17 @@
 import { input } from '@inquirer/prompts';
-import Handlebars from 'handlebars';
 import chalk from 'chalk';
 import * as fs from 'fs';
+import Handlebars from 'handlebars';
 import * as path from 'path';
 
 Handlebars.registerHelper('capitalize', (str) => {
   if (typeof str !== 'string' || !str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
+});
+
+Handlebars.registerHelper('upper', (str) => {
+  if (typeof str !== 'string' || !str) return str;
+  return str.toUpperCase();
 });
 
 async function main() {
@@ -33,14 +38,32 @@ async function main() {
     process.exit(1);
   }
 
+  // Create directory structure
   fs.mkdirSync(targetDir, { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'services'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'services', '__tests__'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'pages'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'pages', '__tests__'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'constants'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'components'), { recursive: true });
 
   const templates = [
+    // Services
     { src: 'service.hbs', dest: `services/${nameLower}.service.ts` },
+    { src: 'serviceTest.hbs', dest: `services/__tests__/${nameLower}.service.test.ts` },
+    
+    // Pages
     { src: 'list.hbs', dest: `pages/${nameCapitalized}ListPage.tsx` },
-    { src: 'form.hbs', dest: `pages/${nameCapitalized}FormPage.tsx` }
+    { src: 'listTest.hbs', dest: `pages/__tests__/${nameCapitalized}ListPage.test.tsx` },
+    { src: 'form.hbs', dest: `pages/${nameCapitalized}FormPage.tsx` },
+    { src: 'formTest.hbs', dest: `pages/__tests__/${nameCapitalized}FormPage.test.tsx` },
+    
+    // Constants
+    { src: 'constants.hbs', dest: `constants/${nameLower}.constants.ts` },
+    { src: 'headerMap.hbs', dest: `constants/${nameLower}HeaderMap.tsx` },
+    
+    // Components
+    { src: 'filters.hbs', dest: `components/${nameCapitalized}Filters.tsx` },
   ];
 
   for (const template of templates) {
@@ -58,7 +81,8 @@ async function main() {
   console.log(chalk.white(`import { ${nameCapitalized}ListPage } from '@/features/${nameLower}/pages/${nameCapitalized}ListPage';`));
   console.log(chalk.white(`import { ${nameCapitalized}FormPage } from '@/features/${nameLower}/pages/${nameCapitalized}FormPage';`));
   console.log(chalk.white(`\n<Route path="${nameLower}s" element={<${nameCapitalized}ListPage />} />`));
-  console.log(chalk.white(`<Route path="${nameLower}s/:id" element={<${nameCapitalized}FormPage />} />\n`));
+  console.log(chalk.white(`<Route path="${nameLower}s/new" element={<${nameCapitalized}FormPage />} />`));
+  console.log(chalk.white(`<Route path="${nameLower}s/update/:id" element={<${nameCapitalized}FormPage />} />\n`));
 }
 
 main().catch(console.error);
