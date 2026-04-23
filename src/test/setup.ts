@@ -28,15 +28,13 @@ class IntersectionObserverMock {
 }
 
 // Global helper to trigger intersection
-// @ts-expect-error - extending global
-global.fireIntersection = (isIntersecting: boolean) => {
+globalThis.fireIntersection = (isIntersecting: boolean) => {
   observers.forEach((observer) => {
     observer.callback([{ isIntersecting, target: Array.from(observer.elements)[0] }] as IntersectionObserverEntry[], observer as unknown as IntersectionObserver);
   });
 };
 
-// @ts-expect-error - extending global
-global.clearObservers = () => {
+globalThis.clearObservers = () => {
   observers.clear();
 };
 

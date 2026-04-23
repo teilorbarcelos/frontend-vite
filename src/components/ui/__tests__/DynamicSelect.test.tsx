@@ -13,7 +13,7 @@ describe('DynamicSelect', () => {
   });
 
   afterEach(() => {
-    (global as any).clearObservers();
+    (globalThis as any).clearObservers();
   });
 
   const mockItems: TestItem[] = [
@@ -138,7 +138,7 @@ describe('DynamicSelect', () => {
     await waitFor(() => screen.getByText('Option 1'));
 
     // Trigger intersection
-    (global as any).fireIntersection(true);
+    (globalThis as any).fireIntersection(true);
 
     await waitFor(() => {
       expect(mockFetchPage).toHaveBeenCalledTimes(2);
@@ -153,7 +153,7 @@ describe('DynamicSelect', () => {
     await waitFor(() => screen.getByText('Option 1'));
 
     // Trigger intersection with hasMore = false
-    (global as any).fireIntersection(true);
+    (globalThis as any).fireIntersection(true);
     expect(mockFetchPage).toHaveBeenCalledTimes(1);
   });
 

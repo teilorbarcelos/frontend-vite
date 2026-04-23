@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { ToastIcon, ToastProgress } from '../Toast';
-import React from 'react';
 
 describe('Toast Components', () => {
   it('renders ToastIcon for different variants', () => {

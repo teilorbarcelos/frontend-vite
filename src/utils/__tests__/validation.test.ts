@@ -10,7 +10,7 @@ describe('Validation Utilities Coverage', () => {
 
     it('returns empty array when permissions is missing/null', () => {
       expect(getRolePermissions({})).toEqual([]);
-      expect(getRolePermissions({ permissions: null })).toEqual([]);
+      expect(getRolePermissions({ permissions: null as any })).toEqual([]);
     });
 
     it('returns permissions when present', () => {
