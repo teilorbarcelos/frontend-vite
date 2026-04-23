@@ -2,7 +2,6 @@ import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { LoadingProvider } from '../LoadingContext';
 import { useLoading } from '@/hooks/useLoading';
-import React from 'react';
 
 const TestComponent = () => {
   const { showLoading, hideLoading } = useLoading();
