@@ -3,8 +3,9 @@ import { getProductColumns } from '../product/constants/productHeaderMap';
 import { getRoleColumns } from '../role/constants/roleHeaderMap';
 import { getUserColumns } from '../user/constants/userHeaderMap';
 import { render, screen, cleanup } from '@testing-library/react';
-import { AuthContext } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/auth';
 import { afterEach } from 'vitest';
+import React from 'react';
 
 describe('HeaderMaps Coverage', () => {
   afterEach(() => {
@@ -12,21 +13,16 @@ describe('HeaderMaps Coverage', () => {
   });
   const permissions = { canUpdate: true, canDelete: true };
   const mockFn = vi.fn();
-  const mockAuth = {
-    user: null,
+  
+  // Set default store state
+  useAuthStore.setState({
     isAuthenticated: true,
     isLoading: false,
-    login: vi.fn(),
-    logout: vi.fn(),
-    hasPermission: vi.fn().mockReturnValue(true),
-  };
+    hasPermission: () => true,
+  });
 
   const renderWithAuth = (ui: React.ReactElement) => {
-    return render(
-      <AuthContext.Provider value={mockAuth}>
-        {ui}
-      </AuthContext.Provider>
-    );
+    return render(ui);
   };
 
   it('ProductHeaderMap coverage', () => {

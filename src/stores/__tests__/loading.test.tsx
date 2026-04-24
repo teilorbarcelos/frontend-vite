@@ -1,7 +1,9 @@
 import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { LoadingProvider } from '../LoadingContext';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { LoadingProvider } from '@/providers/LoadingProvider';
 import { useLoading } from '@/hooks/useLoading';
+import { useLoadingStore } from '@/stores/loading';
+import React from 'react';
 
 const TestComponent = () => {
   const { showLoading, hideLoading } = useLoading();
@@ -13,7 +15,11 @@ const TestComponent = () => {
   );
 };
 
-describe('LoadingContext', () => {
+describe('LoadingStore', () => {
+  beforeEach(() => {
+    useLoadingStore.setState({ isLoading: false, message: 'Carregando...' });
+  });
+
   it('shows and hides loading overlay', async () => {
     render(
       <LoadingProvider>
