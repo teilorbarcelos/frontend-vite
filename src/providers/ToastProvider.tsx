@@ -9,53 +9,27 @@ import {
   ToastTitle,
   ToastViewport,
 } from '@/components/ui/Toast';
-import React, { useCallback, useState, type ReactNode } from 'react';
-import { ToastContext, type Toast } from '@/hooks/useToast';
+import React, { useCallback, type ReactNode } from 'react';
+import { useToastStore } from '@/stores/toast';
+import type { Toast } from '@/stores/toast';
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const addToast = useCallback((options: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { ...options, id }]);
-  }, []);
-
-  const success = useCallback((message: string, title: string = 'Sucesso!') => {
-    addToast({ description: message, title, variant: 'success' });
-  }, [addToast]);
-
-  const error = useCallback((message: string, title: string = 'Erro!') => {
-    addToast({ description: message, title, variant: 'error' });
-  }, [addToast]);
-
-  const info = useCallback((message: string, title: string = 'Informação') => {
-    addToast({ description: message, title, variant: 'info' });
-  }, [addToast]);
-
-  const warning = useCallback((message: string, title: string = 'Atenção!') => {
-    addToast({ description: message, title, variant: 'warning' });
-  }, [addToast]);
+  const { toasts, removeToast } = useToastStore();
 
   return (
-    <ToastContext.Provider value={{ toast: addToast, success, error, info, warning }}>
-      <RadixToastProvider swipeDirection="right">
-        {children}
-        
-        {toasts.map((toast) => (
-          <ToastItem 
-            key={toast.id} 
-            toast={toast} 
-            onRemove={() => removeToast(toast.id)} 
-          />
-        ))}
-        
-        <ToastViewport />
-      </RadixToastProvider>
-    </ToastContext.Provider>
+    <RadixToastProvider swipeDirection="right">
+      {children}
+      
+      {toasts.map((toast) => (
+        <ToastItem 
+          key={toast.id} 
+          toast={toast} 
+          onRemove={() => removeToast(toast.id)} 
+        />
+      ))}
+      
+      <ToastViewport />
+    </RadixToastProvider>
   );
 }
 

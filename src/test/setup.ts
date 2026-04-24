@@ -1,5 +1,25 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
+
+beforeEach(async () => {
+  const { resetAuthStore } = await import('@/stores/auth');
+  const { useLoadingStore } = await import('@/stores/loading');
+  const { useToastStore } = await import('@/stores/toast');
+
+  resetAuthStore();
+
+  useLoadingStore.setState({
+    isLoading: false,
+    message: 'Carregando...',
+  });
+
+  useToastStore.setState({
+    toasts: [],
+  });
+
+  localStorage.clear();
+  vi.clearAllMocks();
+});
 
 // Mock IntersectionObserver to allow manual triggering in tests
 const observers = new Set<IntersectionObserverMock>();

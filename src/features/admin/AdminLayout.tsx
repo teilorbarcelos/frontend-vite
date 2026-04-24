@@ -2,7 +2,7 @@ import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { LogOut, User as UserIcon, LayoutDashboard, Users, Shield, Package } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export function AdminLayout() {
   const navigate = useNavigate();

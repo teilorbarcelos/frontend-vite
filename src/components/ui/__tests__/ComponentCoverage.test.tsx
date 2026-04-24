@@ -1,4 +1,4 @@
-import { AuthContext } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/auth';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { HeaderMapItem } from '../DataTable';
@@ -33,31 +33,26 @@ describe('UI Component Edge Cases for Coverage', () => {
   });
 
   it('StatusBadge edge cases', () => {
-    const mockAuth = {
-      user: null,
+    useAuthStore.setState({
       isAuthenticated: true,
       isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      hasPermission: vi.fn().mockReturnValue(false),
-    };
+      hasPermission: () => false,
+    });
 
     const { rerender } = render(
-      <AuthContext.Provider value={mockAuth}>
-        <StatusBadge active={true} feature="user" />
-      </AuthContext.Provider>
+      <StatusBadge active={true} feature="user" />
     );
     
     const badge = screen.getByText('Ativo');
     expect(badge).toBeDisabled();
 
-    mockAuth.hasPermission.mockReturnValue(true);
+    useAuthStore.setState({
+      hasPermission: () => true,
+    });
     const onClick = vi.fn();
     
     rerender(
-      <AuthContext.Provider value={mockAuth}>
-        <StatusBadge active={true} feature="user" onClick={onClick} />
-      </AuthContext.Provider>
+      <StatusBadge active={true} feature="user" onClick={onClick} />
     );
     
     fireEvent.click(screen.getByText('Ativo'));
@@ -139,29 +134,24 @@ describe('UI Component Edge Cases for Coverage', () => {
   });
 
   it('StatusBadge without onClick or permission', () => {
-    const mockAuth = {
-      user: null,
+    useAuthStore.setState({
       isAuthenticated: true,
       isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      hasPermission: vi.fn().mockReturnValue(true),
-    };
+      hasPermission: () => true,
+    });
 
     const { rerender } = render(
-      <AuthContext.Provider value={mockAuth}>
-        <StatusBadge active={true} feature="user" />
-      </AuthContext.Provider>
+      <StatusBadge active={true} feature="user" />
     );
     
     // Should not crash when clicked even if onClick is missing
     fireEvent.click(screen.getByText('Ativo'));
 
-    mockAuth.hasPermission.mockReturnValue(false);
+    useAuthStore.setState({
+      hasPermission: () => false,
+    });
     rerender(
-      <AuthContext.Provider value={mockAuth}>
-        <StatusBadge active={true} feature="user" onClick={vi.fn()} />
-      </AuthContext.Provider>
+      <StatusBadge active={true} feature="user" onClick={vi.fn()} />
     );
 
     // Should not trigger onClick if no permission

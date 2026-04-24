@@ -7,7 +7,8 @@ import { RoleListPage } from '@/features/role/pages/RoleListPage';
 import { UserFormPage } from '@/features/user/pages/UserFormPage';
 import { UserListPage } from '@/features/user/pages/UserListPage';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import React, { useEffect } from 'react';
 import { ErrorPage } from '@/components/ui/ErrorPage';
 
 const ProtectedRoute = ({ children, feature, action }: { 
@@ -69,9 +70,13 @@ const router = createBrowserRouter([
 ]);
 
 export function AppRoutes() {
+  const { checkAuth } = useAuth();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <RouterProvider router={router} />
   );
 }

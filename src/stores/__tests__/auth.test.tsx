@@ -1,8 +1,9 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthProvider, useAuth } from '../AuthContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/axios';
+import { useAuthStore } from '@/stores/auth';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useEffect } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/axios', () => ({
   api: {
@@ -11,7 +12,12 @@ vi.mock('@/lib/axios', () => ({
 }));
 
 const TestComponent = () => {
-  const { user, isAuthenticated, login, logout, hasPermission } = useAuth();
+  const { user, isAuthenticated, login, logout, hasPermission, checkAuth } = useAuth();
+  
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <div>
       <div data-testid="auth-status">{isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</div>
@@ -24,32 +30,18 @@ const TestComponent = () => {
   );
 };
 
-describe('AuthContext', () => {
-  let queryClient: QueryClient;
-
+describe('AuthStore', () => {
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
-      },
-    });
     vi.clearAllMocks();
     localStorage.clear();
+    useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: true });
   });
 
   it('provides authentication status when token exists', async () => {
     localStorage.setItem('token', 'valid-token');
     (api.get as any).mockResolvedValue({ data: { user: { id: '1', name: 'John', role: { permissions: [] } } } });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
@@ -58,15 +50,11 @@ describe('AuthContext', () => {
   });
 
   it('handles login and logout', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
-    expect(screen.getByTestId('auth-status')).toHaveTextContent('Not Authenticated');
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-status')).toHaveTextContent('Not Authenticated');
+    });
 
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => {
@@ -85,13 +73,7 @@ describe('AuthContext', () => {
     localStorage.setItem('token', 'invalid-token');
     (api.get as any).mockRejectedValue(new Error('Invalid token'));
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull();
@@ -113,13 +95,7 @@ describe('AuthContext', () => {
       } 
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
     await waitFor(() => {
       expect(screen.getByTestId('permission')).toHaveTextContent('Has Create');
@@ -139,13 +115,7 @@ describe('AuthContext', () => {
       } 
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
     await waitFor(() => {
       expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
@@ -164,13 +134,7 @@ describe('AuthContext', () => {
       } 
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
@@ -178,64 +142,61 @@ describe('AuthContext', () => {
   });
 
   it('returns false for hasPermission when user is not logged in', async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
+    render(<TestComponent />);
 
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-status')).toHaveTextContent('Not Authenticated');
+    });
     expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
   });
 
-  it('handles user with undefined permissions', async () => {
-    localStorage.setItem('token', 'valid-token');
-    (api.get as any).mockResolvedValue({ 
-      data: { 
-        user: { 
-          id: '1', 
-          name: 'John', 
-          role: { permissions: undefined }
+  describe('real implementation coverage', () => {
+    it('exercises setAuth', () => {
+      const { setAuth } = useAuthStore.getState();
+      const user = { id: '1', name: 'Test', role: { permissions: [] } } as any;
+      setAuth(user);
+      expect(useAuthStore.getState().user).toEqual(user);
+      expect(useAuthStore.getState().isAuthenticated).toBe(true);
+      
+      setAuth(null);
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    it('exercises checkAuth failure', async () => {
+      localStorage.setItem('token', 'bad-token');
+      (api.get as any).mockRejectedValue(new Error('Auth failed'));
+      
+      const { checkAuth } = useAuthStore.getState();
+      await checkAuth();
+      
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    it('exercises real hasPermission', () => {
+      const user = { 
+        id: '1', 
+        name: 'Test', 
+        role: { 
+          id: '1',
+          name: 'Admin',
+          permissions: [{ feature: 'users', view: true, create: false, delete: true, activate: true }] 
         } 
-      } 
-    });
+      } as any;
+      
+      useAuthStore.setState({ user, isAuthenticated: true });
+      const { hasPermission } = useAuthStore.getState();
+      
+      expect(hasPermission('users', 'view')).toBe(true);
+      expect(hasPermission('users', 'create')).toBe(false);
+      expect(hasPermission('roles', 'view')).toBe(false);
+      
+      useAuthStore.setState({ user: null });
+      expect(hasPermission('users', 'view')).toBe(false);
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
-    });
-  });
-
-  it('handles user with null permissions explicitly', async () => {
-    localStorage.setItem('token', 'valid-token');
-    (api.get as any).mockResolvedValue({ 
-      data: { 
-        user: { 
-          id: '1', 
-          name: 'John', 
-          role: { permissions: null }
-        } 
-      } 
-    });
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </QueryClientProvider>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId('permission')).toHaveTextContent('No Create');
+      useAuthStore.setState({ user: { id: '1', role: null } as any });
+      expect(hasPermission('users', 'view')).toBe(false);
     });
   });
 });

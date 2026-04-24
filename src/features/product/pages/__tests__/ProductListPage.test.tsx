@@ -4,8 +4,8 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { ProductListPage } from '../ProductListPage';
 import { renderWithProviders } from '@/test/utils';
 import { productService } from '../../services/product.service';
-import { AuthContext } from '@/contexts/AuthContext';
-import { LoadingProvider } from '@/contexts/LoadingContext';
+import { useAuthStore } from '@/stores/auth';
+import { LoadingProvider } from '@/providers/LoadingProvider';
 import { ToastProvider } from '@/providers/ToastProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -29,6 +29,13 @@ describe('ProductListPage', () => {
     (productService.getProducts as Mock).mockResolvedValue({
       items: mockProducts,
       total: 2,
+    });
+    // Reset store state
+    useAuthStore.setState({
+      user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
+      isAuthenticated: true,
+      isLoading: false,
+      hasPermission: () => true,
     });
   });
 
@@ -208,24 +215,32 @@ describe('ProductListPage', () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
+    // Mock store state with specific permissions
+    useAuthStore.setState({
+      user: { 
+        id: '1', 
+        name: 'Test User', 
+        email: 'test@example.com', 
+        role: { 
+          id: '1', 
+          name: 'Admin', 
+          permissions: [] 
+        } 
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      hasPermission: (f, a) => !(f === 'product' && a === 'create'),
+    });
+
     render(
       <QueryClientProvider client={queryClient}>
-        <AuthContext.Provider value={{
-          user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
-          isAuthenticated: true,
-          isLoading: false,
-          login: () => {},
-          logout: () => {},
-          hasPermission: (f, a) => !(f === 'product' && a === 'create'),
-        }}>
-          <LoadingProvider>
-            <ToastProvider>
-              <MemoryRouter>
-                <ProductListPage />
-              </MemoryRouter>
-            </ToastProvider>
-          </LoadingProvider>
-        </AuthContext.Provider>
+        <LoadingProvider>
+          <ToastProvider>
+            <MemoryRouter>
+              <ProductListPage />
+            </MemoryRouter>
+          </ToastProvider>
+        </LoadingProvider>
       </QueryClientProvider>
     );
 
