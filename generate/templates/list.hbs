@@ -22,7 +22,9 @@ export function {{nameCapitalized}}ListPage() {
     handleSearch,
     handleFilter,
     tableProps: dataTableProps
-  } = useDataTable();
+  } = useDataTable({ 
+    defaultSort: { orderDirection: undefined } 
+  });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();

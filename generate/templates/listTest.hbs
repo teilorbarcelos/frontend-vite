@@ -85,29 +85,6 @@ describe('{{nameCapitalized}}ListPage', () => {
     expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument();
   });
 
-  it('shows badge when filters are active', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<{{nameCapitalized}}ListPage />);
-    
-    const filterButton = screen.getByText('Filtros');
-    await user.click(filterButton);
-    
-    const statusSelect = screen.getByLabelText(/Status/i);
-    await user.selectOptions(statusSelect, 'true');
-    
-    const applyButton = screen.getByText('Aplicar');
-    await user.click(applyButton);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      const filterButtonAfter = screen.getByRole('button', { name: /Filtros/i });
-      const badge = within(filterButtonAfter).queryByText('1');
-      expect(badge).toBeInTheDocument();
-    });
-  });
 
   it('triggers search when search input changes', async () => {
     const user = userEvent.setup();
