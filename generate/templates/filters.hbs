@@ -1,4 +1,5 @@
-import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
+import { FilterDrawer } from '@/components/ui/FilterDrawer';
+import { {{upper nameLower}}_FILTER_CONFIG } from '../constants/{{nameLower}}.constants';
 
 interface {{nameCapitalized}}FiltersProps {
   isOpen: boolean;
@@ -6,8 +7,6 @@ interface {{nameCapitalized}}FiltersProps {
   onFilter: (filters: Record<string, unknown>) => void;
   initialValues?: Record<string, unknown>;
 }
-
-const {{upper nameLower}}_FILTER_CONFIG: FilterField[] = [];
 
 export function {{nameCapitalized}}Filters({ 
   isOpen, 

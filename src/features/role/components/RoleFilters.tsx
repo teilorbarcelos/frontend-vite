@@ -1,5 +1,5 @@
-
-import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
+import { FilterDrawer } from '@/components/ui/FilterDrawer';
+import { ROLE_FILTER_CONFIG } from '../constants/role.constants';
 
 interface RoleFiltersProps {
   isOpen: boolean;
@@ -7,19 +7,6 @@ interface RoleFiltersProps {
   onFilter: (filters: Record<string, unknown>) => void;
   initialValues?: Record<string, unknown>;
 }
-
-const ROLE_FILTER_CONFIG: FilterField[] = [
-  { 
-    name: 'active', 
-    label: 'Status', 
-    type: 'select', 
-    options: [
-      { label: 'Ativo', value: 'true' },
-      { label: 'Inativo', value: 'false' }
-    ] 
-  },
-  { name: 'createdAt', label: 'Data de Criação', type: 'dateRange' }
-];
 
 export function RoleFilters({ 
   isOpen, 
