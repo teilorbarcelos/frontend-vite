@@ -29,7 +29,7 @@ export function ProductListPage() {
 
   const permissions = useMemo(() => ({
     canCreate: hasPermission('product', 'create'),
-    canUpdate: hasPermission('product', 'create'),
+    canUpdate: hasPermission('product', 'update'),
     canDelete: hasPermission('product', 'delete'),
   }), [hasPermission]);
 

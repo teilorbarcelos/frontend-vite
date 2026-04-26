@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn';
 import { LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-export function AdminLayout() {
+export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, hasPermission } = useAuth();

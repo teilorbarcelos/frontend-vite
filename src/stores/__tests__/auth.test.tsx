@@ -201,5 +201,42 @@ describe('AuthStore', () => {
       useAuthStore.setState({ user: { id: '1', role: null } as any });
       expect(hasPermission('users', 'view')).toBe(false);
     });
+
+    it('exercises hasPermission with update fallback', () => {
+      const user = { 
+        id: '1', 
+        name: 'Test', 
+        role: { 
+          id: '1',
+          name: 'TestRole',
+          permissions: [
+            { feature: 'products', view: true, create: true, delete: true, activate: true },
+            { feature: 'categories', view: true, create: false, delete: true, activate: true }
+          ] 
+        } 
+      } as any;
+      
+      useAuthStore.setState({ user, isAuthenticated: true });
+      const { hasPermission } = useAuthStore.getState();
+      
+      // Caso 1: update não existe, deve usar o valor de create (true)
+      expect(hasPermission('products', 'update')).toBe(true);
+      
+      // Caso 2: update não existe, deve usar o valor de create (false)
+      expect(hasPermission('categories', 'update')).toBe(false);
+
+      // Caso 3: update existe explicitamente, deve usar o valor de update (false) mesmo que create seja true
+      const userWithExplicitUpdate = {
+        ...user,
+        role: {
+          ...user.role,
+          permissions: [
+            { feature: 'products', view: true, create: true, update: false, delete: true, activate: true }
+          ]
+        }
+      };
+      useAuthStore.setState({ user: userWithExplicitUpdate as any });
+      expect(hasPermission('products', 'update')).toBe(false);
+    });
   });
 });

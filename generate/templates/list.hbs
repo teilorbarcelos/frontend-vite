@@ -31,7 +31,7 @@ export function {{nameCapitalized}}ListPage() {
 
   const permissions = useMemo(() => ({
     canCreate: hasPermission('{{nameLower}}', 'create'),
-    canUpdate: hasPermission('{{nameLower}}', 'create'),
+    canUpdate: hasPermission('{{nameLower}}', 'update'),
     canDelete: hasPermission('{{nameLower}}', 'delete'),
   }), [hasPermission]);
 

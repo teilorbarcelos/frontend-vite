@@ -29,7 +29,7 @@ export function RoleListPage() {
 
   const permissions = useMemo(() => ({
     canCreate: hasPermission('role', 'create'),
-    canUpdate: hasPermission('role', 'create'),
+    canUpdate: hasPermission('role', 'update'),
     canDelete: hasPermission('role', 'delete'),
   }), [hasPermission]);
 

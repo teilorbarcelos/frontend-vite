@@ -16,7 +16,7 @@ Handlebars.registerHelper('upper', (str) => {
 
 function updateRootFiles(nameLower: string) {
   const routesPath = path.join(__dirname, '../src/routes/index.tsx');
-  const layoutPath = path.join(__dirname, '../src/features/admin/AdminLayout.tsx');
+  const layoutPath = path.join(__dirname, '../src/layouts/AppLayout.tsx');
 
   const inject = (filePath: string, marker: string, code: string, check: string) => {
     if (!fs.existsSync(filePath)) return;

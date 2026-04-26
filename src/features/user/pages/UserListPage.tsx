@@ -29,7 +29,7 @@ export function UserListPage() {
 
   const permissions = useMemo(() => ({
     canCreate: hasPermission('user', 'create'),
-    canUpdate: hasPermission('user', 'create'),
+    canUpdate: hasPermission('user', 'update'),
     canDelete: hasPermission('user', 'delete'),
   }), [hasPermission]);
 
