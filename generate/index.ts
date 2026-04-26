@@ -76,6 +76,7 @@ async function main() {
   fs.mkdirSync(path.join(targetDir, 'pages'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'pages', '__tests__'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'constants'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'constants', '__tests__'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'components'), { recursive: true });
 
   const templates = [
@@ -92,6 +93,7 @@ async function main() {
     // Constants
     { src: 'constants.hbs', dest: `constants/${nameLower}.constants.ts` },
     { src: 'headerMap.hbs', dest: `constants/${nameLower}HeaderMap.tsx` },
+    { src: 'headerMapTest.hbs', dest: `constants/__tests__/${nameLower}HeaderMap.test.tsx` },
     
     // Components
     { src: 'filters.hbs', dest: `components/${nameCapitalized}Filters.tsx` },
