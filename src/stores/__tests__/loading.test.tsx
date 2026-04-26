@@ -1,9 +1,8 @@
-import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { LoadingProvider } from '@/providers/LoadingProvider';
 import { useLoading } from '@/hooks/useLoading';
+import { LoadingProvider } from '@/providers/LoadingProvider';
 import { useLoadingStore } from '@/stores/loading';
-import React from 'react';
+import { act, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 const TestComponent = () => {
   const { showLoading, hideLoading } = useLoading();

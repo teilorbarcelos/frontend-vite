@@ -1,11 +1,10 @@
-import { useAuthStore } from '@/stores/auth';
 import { LoadingProvider } from '@/providers/LoadingProvider';
 import { ToastProvider } from '@/providers/ToastProvider';
+import { useAuthStore } from '@/stores/auth';
 import { renderWithProviders } from '@/test/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { roleService } from '../../services/role.service';
