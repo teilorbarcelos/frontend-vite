@@ -24,7 +24,6 @@ export function renderWithProviders(ui: ReactNode) {
     user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
     isAuthenticated: true,
     isLoading: false,
-    hasPermission: () => true,
   });
 
   useLoadingStore.setState({

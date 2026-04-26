@@ -1,14 +1,10 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { {{nameCapitalized}}ListPage } from '../{{nameCapitalized}}ListPage';
 import { renderWithProviders } from '@/test/utils';
 import { {{nameLower}}Service } from '../../services/{{nameLower}}.service';
-import { AuthContext } from '@/contexts/AuthContext';
-import { LoadingProvider } from '@/contexts/LoadingContext';
-import { ToastProvider } from '@/providers/ToastProvider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { useAuthStore } from '@/stores/auth';
 
 vi.mock('../../services/{{nameLower}}.service', () => ({
   {{nameLower}}Service: {
@@ -191,58 +187,22 @@ describe('{{nameCapitalized}}ListPage', () => {
   });
 
   it('renders without create button when permission is missing', async () => {
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
+    useAuthStore.setState({
+      hasPermission: (f, a) => !(f === '{{nameLower}}' && a === 'create'),
     });
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthContext.Provider value=\{{
-          user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
-          isAuthenticated: true,
-          isLoading: false,
-          login: () => {},
-          logout: () => {},
-          hasPermission: (f, a) => !(f === '{{nameLower}}' && a === 'create'),
-        }}>
-          <LoadingProvider>
-            <ToastProvider>
-              <MemoryRouter>
-                <{{nameCapitalized}}ListPage />
-              </MemoryRouter>
-            </ToastProvider>
-          </LoadingProvider>
-        </AuthContext.Provider>
-      </QueryClientProvider>
-    );
+
+    renderWithProviders(<{{nameCapitalized}}ListPage />);
 
     await waitFor(() => expect(screen.getByText('{{nameCapitalized}}s')).toBeInTheDocument());
     expect(screen.queryByText(/Novo Registro/i)).not.toBeInTheDocument();
   });
 
   it('renders without edit and delete actions when permissions are missing', async () => {
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
+    useAuthStore.setState({
+      hasPermission: () => false,
     });
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AuthContext.Provider value=\{{
-          user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
-          isAuthenticated: true,
-          isLoading: false,
-          login: () => {},
-          logout: () => {},
-          hasPermission: () => false,
-        }}>
-          <LoadingProvider>
-            <ToastProvider>
-              <MemoryRouter>
-                <{{nameCapitalized}}ListPage />
-              </MemoryRouter>
-            </ToastProvider>
-          </LoadingProvider>
-        </AuthContext.Provider>
-      </QueryClientProvider>
-    );
+
+    renderWithProviders(<{{nameCapitalized}}ListPage />);
 
     await waitFor(() => screen.getByText('Item 1'));
     const menuTriggers = screen.queryAllByRole('button', { name: /Abrir menu/i });

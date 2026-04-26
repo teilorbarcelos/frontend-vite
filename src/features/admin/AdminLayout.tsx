@@ -1,8 +1,12 @@
-import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { LogOut, User as UserIcon, LayoutDashboard, Users, Shield, Package } from 'lucide-react';
-import { cn } from '@/utils/cn';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { productMenu } from '@/features/product/menu';
+import { roleMenu } from '@/features/role/menu';
+import { userMenu } from '@/features/user/menu';
+// [GENERATE_FEATURE_MENU_IMPORT]
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/utils/cn';
+import { LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -16,9 +20,10 @@ export function AdminLayout() {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, feature: 'dashboard' },
-    { name: 'Perfis', path: '/roles', icon: Shield, feature: 'role' },
-    { name: 'Usuários', path: '/users', icon: Users, feature: 'user' },
-    { name: 'Produtos', path: '/products', icon: Package, feature: 'product' },
+    roleMenu,
+    userMenu,
+    productMenu,
+    // [GENERATE_FEATURE_MENU_ITEM]
   ].filter(item => !item.feature || hasPermission(item.feature, 'view'));
 
   return (
