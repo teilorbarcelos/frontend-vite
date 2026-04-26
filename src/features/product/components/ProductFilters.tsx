@@ -1,5 +1,5 @@
-
-import { FilterDrawer, type FilterField } from '@/components/ui/FilterDrawer';
+import { FilterDrawer } from '@/components/ui/FilterDrawer';
+import { PRODUCT_FILTER_CONFIG } from '../constants/product.constants';
 
 interface ProductFiltersProps {
   isOpen: boolean;
@@ -7,19 +7,6 @@ interface ProductFiltersProps {
   onFilter: (filters: Record<string, unknown>) => void;
   initialValues?: Record<string, unknown>;
 }
-
-const PRODUCT_FILTER_CONFIG: FilterField[] = [
-  { 
-    name: 'active', 
-    label: 'Status', 
-    type: 'select', 
-    options: [
-      { label: 'Ativo', value: 'true' },
-      { label: 'Inativo', value: 'false' }
-    ] 
-  },
-  { name: 'createdAt', label: 'Data de Criação', type: 'dateRange' }
-];
 
 export function ProductFilters({ 
   isOpen, 
