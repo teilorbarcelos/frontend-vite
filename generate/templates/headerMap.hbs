@@ -11,11 +11,10 @@ export const get{{nameCapitalized}}Columns = (
     canDelete: boolean;
   }
 ): HeaderMapItem<{{nameCapitalized}}>[] => [
-  { title: 'Nome', keyItem: 'name', truncate: true, sortable: true },
+  { title: 'Nome', keyItem: 'name', truncate: true },
   {
     title: 'Status',
     keyItem: 'active',
-    sortable: true,
     parseItem: (active, item) => (
       <StatusBadge 
         active={!!active} 

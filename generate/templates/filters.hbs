@@ -7,18 +7,7 @@ interface {{nameCapitalized}}FiltersProps {
   initialValues?: Record<string, unknown>;
 }
 
-const {{upper nameLower}}_FILTER_CONFIG: FilterField[] = [
-  { 
-    name: 'active', 
-    label: 'Status', 
-    type: 'select', 
-    options: [
-      { label: 'Ativo', value: 'true' },
-      { label: 'Inativo', value: 'false' }
-    ] 
-  },
-  { name: 'createdAt', label: 'Data de Criação', type: 'dateRange' }
-];
+const {{upper nameLower}}_FILTER_CONFIG: FilterField[] = [];
 
 export function {{nameCapitalized}}Filters({ 
   isOpen, 
