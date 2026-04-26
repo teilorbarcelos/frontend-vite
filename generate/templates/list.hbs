@@ -1,9 +1,7 @@
 import { DataTable } from '@/components/ui/DataTable';
 import { useAuth } from '@/hooks/useAuth';
 import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/hooks/useToast';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ListPageHeader } from '@/components/ui/ListPageHeader';
@@ -11,6 +9,7 @@ import { {{nameCapitalized}}Filters } from '../components/{{nameCapitalized}}Fil
 import { {{upper nameLower}}_SEARCHABLE_FIELDS as searchFields } from '../constants/{{nameLower}}.constants';
 import { get{{nameCapitalized}}Columns } from '../constants/{{nameLower}}HeaderMap';
 import { {{nameLower}}Service } from '../services/{{nameLower}}.service';
+import { {{nameLower}}Mutations } from '../hooks/{{nameLower}}.mutations';
 
 export function {{nameCapitalized}}ListPage() {
   const {
@@ -28,7 +27,6 @@ export function {{nameCapitalized}}ListPage() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { hasPermission } = useAuth();
 
   const permissions = useMemo(() => ({
@@ -51,29 +49,8 @@ export function {{nameCapitalized}}ListPage() {
     placeholderData: (prev) => prev,
   });
 
-  const { success, error: toastError } = useToast();
-
-  const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) => {{nameLower}}Service.toggleStatus(id, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
-      success('Status atualizado!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => {{nameLower}}Service.delete{{nameCapitalized}}(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
-      success('Registro excluído com sucesso!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao excluir registro.');
-    }
-  });
+  const toggleStatusMutation = {{nameLower}}Mutations.useToggleStatus();
+  const deleteMutation = {{nameLower}}Mutations.useDelete();
 
   const columns = get{{nameCapitalized}}Columns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),

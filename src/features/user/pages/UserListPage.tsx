@@ -1,9 +1,8 @@
 import { DataTable } from '@/components/ui/DataTable';
 import { useAuth } from '@/hooks/useAuth';
 import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/hooks/useToast';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import { userMutations } from '../hooks/user.mutations';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ListPageHeader } from '@/components/ui/ListPageHeader';
@@ -26,7 +25,6 @@ export function UserListPage() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { hasPermission } = useAuth();
 
   const permissions = useMemo(() => ({
@@ -49,29 +47,8 @@ export function UserListPage() {
     placeholderData: (previousData) => previousData,
   });
 
-  const { success, error: toastError } = useToast();
-
-  const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) => userService.toggleStatus(id, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      success('Status do usuário atualizado!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => userService.deleteUser(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      success('Usuário excluído com sucesso!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao excluir usuário.');
-    }
-  });
+  const toggleStatusMutation = userMutations.useToggleStatus();
+  const deleteMutation = userMutations.useDelete();
 
   const columns = getUserColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),

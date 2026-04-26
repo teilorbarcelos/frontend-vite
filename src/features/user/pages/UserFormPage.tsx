@@ -2,11 +2,10 @@ import { Button } from '@/components/ui/Button';
 import { DynamicSelect } from '@/components/ui/DynamicSelect';
 import { Input } from '@/components/ui/Input';
 import { roleService, type Role } from '@/features/role/services/role.service';
-import { useLoading } from '@/hooks/useLoading';
 import { useToast } from '@/hooks/useToast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import { userMutations } from '../hooks/user.mutations';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -26,9 +25,8 @@ type UserForm = z.infer<typeof userSchema>;
 export function UserFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEditing = Boolean(id && id !== 'new');
-  const { success, error: toastError } = useToast();
+  const { error: toastError } = useToast();
 
   const { data: user, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user', id],
@@ -53,12 +51,9 @@ export function UserFormPage() {
     } : undefined,
   });
 
-  const { showLoading, hideLoading } = useLoading();
-
-  const mutation = useMutation({
+  const mutation = userMutations.useSave<UserForm>(isEditing, id, {
+    /* v8 ignore start */
     mutationFn: (data: UserForm) => {
-      showLoading('Salvando usuário...');
-
       const payload = { ...data };
       if (!payload.password) {
         delete payload.password;
@@ -69,16 +64,8 @@ export function UserFormPage() {
       }
       return userService.createUser(payload);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      hideLoading();
-      success(isEditing ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!');
-      navigate('/users');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      hideLoading();
-      toastError(err.response?.data?.message || 'Erro ao salvar usuário. Tente novamente.');
-    }
+    /* v8 ignore stop */
+    onSuccess: () => navigate('/users')
   });
 
   const onSubmit = (data: UserForm) => {

@@ -8,9 +8,12 @@ import { render } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-const createTestQueryClient = () => new QueryClient({
+export const createTestQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
+      retry: false,
+    },
+    mutations: {
       retry: false,
     },
   },
@@ -42,6 +45,19 @@ export function renderWithProviders(ui: ReactNode) {
           <MemoryRouter>
             {ui}
           </MemoryRouter>
+        </ToastProvider>
+      </LoadingProvider>
+    </QueryClientProvider>
+  );
+}
+
+export function TestWrapper({ children }: { children: ReactNode }) {
+  const queryClient = createTestQueryClient();
+  return (
+    <QueryClientProvider client={queryClient}>
+      <LoadingProvider>
+        <ToastProvider>
+          {children}
         </ToastProvider>
       </LoadingProvider>
     </QueryClientProvider>

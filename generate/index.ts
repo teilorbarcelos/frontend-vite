@@ -78,6 +78,8 @@ async function main() {
   fs.mkdirSync(path.join(targetDir, 'constants'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'constants', '__tests__'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'components'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'hooks'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'hooks', '__tests__'), { recursive: true });
 
   const templates = [
     // Services
@@ -97,6 +99,10 @@ async function main() {
     
     // Components
     { src: 'filters.hbs', dest: `components/${nameCapitalized}Filters.tsx` },
+
+    // Hooks
+    { src: 'mutations.hbs', dest: `hooks/${nameLower}.mutations.ts` },
+    { src: 'mutationTest.hbs', dest: `hooks/__tests__/${nameLower}.mutations.test.ts` },
 
     // Routing & Menu
     { src: 'routes.hbs', dest: 'routes.tsx' },

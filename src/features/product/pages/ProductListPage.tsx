@@ -1,15 +1,14 @@
 import { DataTable } from '@/components/ui/DataTable';
+import { ListPageHeader } from '@/components/ui/ListPageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/hooks/useToast';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ListPageHeader } from '@/components/ui/ListPageHeader';
 import { ProductFilters } from '../components/ProductFilters';
 import { PRODUCT_SEARCHABLE_FIELDS as searchFields } from '../constants/product.constants';
 import { getProductColumns } from '../constants/productHeaderMap';
+import { productMutations } from '../hooks/product.mutations';
 import { productService } from '../services/product.service';
 
 export function ProductListPage() {
@@ -26,7 +25,6 @@ export function ProductListPage() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { hasPermission } = useAuth();
 
   const permissions = useMemo(() => ({
@@ -49,29 +47,8 @@ export function ProductListPage() {
     placeholderData: (prev) => prev,
   });
 
-  const { success, error: toastError } = useToast();
-
-  const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) => productService.toggleStatus(id, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      success('Status do produto atualizado!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => productService.deleteProduct(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      success('Produto excluído com sucesso!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao excluir produto.');
-    }
-  });
+  const toggleStatusMutation = productMutations.useToggleStatus();
+  const deleteMutation = productMutations.useDelete();
 
   const columns = getProductColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),
