@@ -1,5 +1,10 @@
 import '@testing-library/jest-dom';
-import { vi, beforeEach } from 'vitest';
+import { beforeEach, vi } from 'vitest';
+
+declare global {
+  var fireIntersection: (isIntersecting: boolean) => void;
+  var clearObservers: () => void;
+}
 
 beforeEach(async () => {
   const { resetAuthStore } = await import('@/stores/auth');
@@ -47,7 +52,6 @@ class IntersectionObserverMock {
   }
 }
 
-// Global helper to trigger intersection
 globalThis.fireIntersection = (isIntersecting: boolean) => {
   observers.forEach((observer) => {
     observer.callback([{ isIntersecting, target: Array.from(observer.elements)[0] }] as IntersectionObserverEntry[], observer as unknown as IntersectionObserver);

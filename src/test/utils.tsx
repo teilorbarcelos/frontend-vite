@@ -5,7 +5,7 @@ import { useLoadingStore } from '@/stores/loading';
 import { useToastStore } from '@/stores/toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
-import React, { type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 const createTestQueryClient = () => new QueryClient({
@@ -24,7 +24,6 @@ export function renderWithProviders(ui: ReactNode) {
     user: { id: '1', name: 'Test User', email: 'test@example.com', role: { id: '1', name: 'Admin', permissions: [] } },
     isAuthenticated: true,
     isLoading: false,
-    hasPermission: () => true,
   });
 
   useLoadingStore.setState({

@@ -22,7 +22,7 @@ const TestComponent = () => {
     <div>
       <div data-testid="auth-status">{isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</div>
       <div data-testid="user-name">{user?.name}</div>
-      <button onClick={() => login('token123', { id: '1', name: 'John', email: 'john@test.com', role: { id: '1', name: 'Admin', permissions: [{ feature: 'users', view: true, create: true, delete: false, activate: true }] } } as any)}>Login</button>
+      <button onClick={() => login('token123', { id: '1', name: 'John', email: 'john@test.com', role: { id: '1', name: 'TestRole', permissions: [{ feature: 'users', view: true, create: true, delete: false, activate: true }, { feature: 'roles', view: false, create: false, delete: false, activate: false }] } } as any)}>Login</button>
       <button onClick={logout}>Logout</button>
       <div data-testid="permission">{hasPermission('users', 'create') ? 'Has Create' : 'No Create'}</div>
       <div data-testid="no-permission">{hasPermission('roles', 'view') ? 'Has View' : 'No View'}</div>
@@ -89,7 +89,7 @@ describe('AuthStore', () => {
           id: '1', 
           name: 'John', 
           role: { 
-            permissions: [{ feature: 'users', view: true, create: true, delete: false, activate: true }] 
+            permissions: [{ feature: 'users', view: true, create: true, delete: false, activate: true }, { feature: 'roles', view: false, create: false, delete: false, activate: false }] 
           } 
         } 
       } 
@@ -180,8 +180,11 @@ describe('AuthStore', () => {
         name: 'Test', 
         role: { 
           id: '1',
-          name: 'Admin',
-          permissions: [{ feature: 'users', view: true, create: false, delete: true, activate: true }] 
+          name: 'TestRole',
+          permissions: [
+            { feature: 'users', view: true, create: false, delete: true, activate: true },
+            { feature: 'roles', view: false, create: false, delete: false, activate: false }
+          ] 
         } 
       } as any;
       

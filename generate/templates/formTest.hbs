@@ -7,121 +7,114 @@ import { {{nameLower}}Service } from '../../services/{{nameLower}}.service';
 import { useParams, useNavigate } from 'react-router-dom';
 
 vi.mock('../../services/{{nameLower}}.service', () => ({
-{{nameLower}}Service: {
-get{{nameCapitalized}}: vi.fn(),
-create{{nameCapitalized}}: vi.fn(),
-update{{nameCapitalized}}: vi.fn(),
-},
+  {{nameLower}}Service: {
+    get{{nameCapitalized}}: vi.fn(),
+    create{{nameCapitalized}}: vi.fn(),
+    update{{nameCapitalized}}: vi.fn(),
+  },
 }));
 
 vi.mock('react-router-dom', async (importOriginal) => {
-const actual = await importOriginal<any>();
+  const actual = await importOriginal<Record<string, unknown>>();
   return {
-  ...actual,
-  useParams: vi.fn(),
-  useNavigate: vi.fn(),
+    ...actual,
+    useParams: vi.fn(),
+    useNavigate: vi.fn(),
   };
-  });
+});
 
-  describe('{{nameCapitalized}}FormPage', () => {
+describe('{{nameCapitalized}}FormPage', () => {
   const mockNavigate = vi.fn();
 
   beforeEach(() => {
-  vi.clearAllMocks();
-  (useParams as Mock).mockReturnValue({ id: 'new' });
-  (useNavigate as Mock).mockReturnValue(mockNavigate);
+    vi.clearAllMocks();
+    (useParams as Mock).mockReturnValue({ id: 'new' });
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
   });
 
   it('renders "Novo Registro" title', () => {
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
-  expect(screen.getByText('Novo Registro')).toBeInTheDocument();
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
+    expect(screen.getByText('Novo Registro')).toBeInTheDocument();
   });
 
   it('submits correctly for new record', async () => {
-  const user = userEvent.setup();
-  ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockResolvedValue({});
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
+    const user = userEvent.setup();
+    ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockResolvedValue({});
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
 
-  await user.type(screen.getByLabelText(/Nome/i), 'New Item');
-  await user.click(screen.getByText('Salvar'));
+    await user.type(screen.getByLabelText(/Nome/i), 'New Item');
+    await user.click(screen.getByText('Salvar'));
 
-  await waitFor(() => {
-  expect({{nameLower}}Service.create{{nameCapitalized}}).toHaveBeenCalled();
-  expect(mockNavigate).toHaveBeenCalledWith('/{{nameLower}}s');
-  });
+    await waitFor(() => {
+      expect({{nameLower}}Service.create{{nameCapitalized}}).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/{{nameLower}}s');
+    });
   });
 
   it('submits correctly in edit mode', async () => {
-  const user = userEvent.setup();
-  const mockItem = { id: '1', name: 'Item 1' };
-  (useParams as Mock).mockReturnValue({ id: '1' });
-  ({{nameLower}}Service.get{{nameCapitalized}} as Mock).mockResolvedValue(mockItem);
-  ({{nameLower}}Service.update{{nameCapitalized}} as Mock).mockResolvedValue({});
+    const user = userEvent.setup();
+    const mockItem = { id: '1', name: 'Item 1' };
+    (useParams as Mock).mockReturnValue({ id: '1' });
+    ({{nameLower}}Service.get{{nameCapitalized}} as Mock).mockResolvedValue(mockItem);
+    ({{nameLower}}Service.update{{nameCapitalized}} as Mock).mockResolvedValue({});
 
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
 
-  await waitFor(() => {
-  expect(screen.getByLabelText(/Nome/i)).toHaveValue('Item 1');
-  });
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Nome/i)).toHaveValue('Item 1');
+    });
 
-  await user.click(screen.getByText('Salvar'));
-  await waitFor(() => {
-  expect({{nameLower}}Service.update{{nameCapitalized}}).toHaveBeenCalled();
-  expect(mockNavigate).toHaveBeenCalledWith('/{{nameLower}}s');
-  });
+    await user.click(screen.getByText('Salvar'));
+    await waitFor(() => {
+      expect({{nameLower}}Service.update{{nameCapitalized}}).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/{{nameLower}}s');
+    });
   });
 
   it('navigates back when cancel is clicked', async () => {
-  const user = userEvent.setup();
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
+    const user = userEvent.setup();
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
 
-  const cancelButtons = screen.getAllByRole('button', { name: /Cancelar/i });
-  await user.click(cancelButtons[0]);
-  expect(mockNavigate).toHaveBeenCalledWith('/{{nameLower}}s');
+    const cancelButtons = screen.getAllByRole('button', { name: /Cancelar/i });
+    await user.click(cancelButtons[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('/{{nameLower}}s');
 
-  await user.click(cancelButtons[1]);
-  expect(mockNavigate).toHaveBeenCalledTimes(2);
+    await user.click(cancelButtons[1]);
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
   });
 
   it('handles submission error with message', async () => {
-  const user = userEvent.setup();
-  ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockRejectedValue({
-  response: { data: { message: 'API Error Message' } }
-  });
+    const user = userEvent.setup();
+    ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockRejectedValue({
+      response: { data: { message: 'API Error Message' } }
+    });
 
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
-  await user.type(screen.getByLabelText(/Nome/i), 'New Item');
-  await user.click(screen.getByText('Salvar'));
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
+    await user.type(screen.getByLabelText(/Nome/i), 'New Item');
+    await user.click(screen.getByText('Salvar'));
 
-  expect(await screen.findByText(/API Error Message/i)).toBeInTheDocument();
+    expect(await screen.findByText(/API Error Message/i)).toBeInTheDocument();
   });
 
   it('handles submission error without message', async () => {
-  const user = userEvent.setup();
-  ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockRejectedValue(new Error('Generic Error'));
+    const user = userEvent.setup();
+    ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockRejectedValue(new Error('Generic Error'));
 
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
-  await user.type(screen.getByLabelText(/Nome/i), 'New Item');
-  await user.click(screen.getByText('Salvar'));
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
+    await user.type(screen.getByLabelText(/Nome/i), 'New Item');
+    await user.click(screen.getByText('Salvar'));
 
-  await waitFor(() => {
-  expect(screen.getByText('Erro ao salvar. Tente novamente.')).toBeInTheDocument();
-  });
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao salvar. Tente novamente.')).toBeInTheDocument();
+    });
   });
 
   it('shows "Salvando..." text when mutation is pending', async () => {
-  const user = userEvent.setup();
-  ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockReturnValue(new Promise(() => {}));
-  renderWithProviders(
-  <{{nameCapitalized}}FormPage />);
-  await user.type(screen.getByLabelText(/Nome/i), 'New Item');
-  await user.click(screen.getByText('Salvar'));
-  expect(screen.getByText('Salvando...')).toBeInTheDocument();
+    const user = userEvent.setup();
+    ({{nameLower}}Service.create{{nameCapitalized}} as Mock).mockReturnValue(new Promise(() => {}));
+    renderWithProviders(<{{nameCapitalized}}FormPage />);
+    await user.type(screen.getByLabelText(/Nome/i), 'New Item');
+    await user.click(screen.getByText('Salvar'));
+    expect(screen.getByText('Salvando...')).toBeInTheDocument();
   });
-  });
+});

@@ -1,0 +1,31 @@
+import { type RouteObject } from 'react-router-dom';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { {{capitalize nameLower}}ListPage } from './pages/{{capitalize nameLower}}ListPage';
+import { {{capitalize nameLower}}FormPage } from './pages/{{capitalize nameLower}}FormPage';
+
+export const {{nameLower}}Routes: RouteObject[] = [
+{
+path: '{{nameLower}}s',
+element: (
+<ProtectedRoute feature="{{nameLower}}" action="view">
+  <{{capitalize nameLower}}ListPage />
+</ProtectedRoute>
+)
+},
+{
+path: '{{nameLower}}s/new',
+element: (
+<ProtectedRoute feature="{{nameLower}}" action="create">
+  <{{capitalize nameLower}}FormPage />
+</ProtectedRoute>
+)
+},
+{
+path: '{{nameLower}}s/update/:id',
+element: (
+<ProtectedRoute feature="{{nameLower}}" action="create">
+  <{{capitalize nameLower}}FormPage />
+</ProtectedRoute>
+)
+},
+];

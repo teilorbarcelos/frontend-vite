@@ -14,6 +14,37 @@ Handlebars.registerHelper('upper', (str) => {
   return str.toUpperCase();
 });
 
+function updateRootFiles(nameLower: string) {
+  const routesPath = path.join(__dirname, '../src/routes/index.tsx');
+  const layoutPath = path.join(__dirname, '../src/features/admin/AdminLayout.tsx');
+
+  const inject = (filePath: string, marker: string, code: string, check: string) => {
+    if (!fs.existsSync(filePath)) return;
+    const content = fs.readFileSync(filePath, 'utf8');
+    if (content.includes(check)) return;
+
+    const lines = content.split('\n');
+    const markerIndex = lines.findIndex(l => l.includes(marker));
+    if (markerIndex === -1) return;
+
+    const indentation = lines[markerIndex].match(/^\s*/)?.[0] || '';
+    lines.splice(markerIndex, 0, `${indentation}${code}`);
+    
+    fs.writeFileSync(filePath, lines.join('\n'));
+    console.log(chalk.green(`✔️ Updated ${path.basename(filePath)}`));
+  };
+
+  {
+    inject(routesPath, '// [GENERATE_FEATURE_ROUTES_IMPORT]', `import { ${nameLower}Routes } from '@/features/${nameLower}/routes';`, `@/features/${nameLower}/routes`);
+    inject(routesPath, '// [GENERATE_FEATURE_ROUTES_SPREAD]', `...${nameLower}Routes,`, `...${nameLower}Routes`);
+  }
+
+  {
+    inject(layoutPath, '// [GENERATE_FEATURE_MENU_IMPORT]', `import { ${nameLower}Menu } from '@/features/${nameLower}/menu';`, `@/features/${nameLower}/menu`);
+    inject(layoutPath, '// [GENERATE_FEATURE_MENU_ITEM]', `${nameLower}Menu,`, `${nameLower}Menu,`);
+  }
+}
+
 async function main() {
   console.log(chalk.blue.bold('\n🚀 Module Generator\n'));
 
@@ -64,6 +95,10 @@ async function main() {
     
     // Components
     { src: 'filters.hbs', dest: `components/${nameCapitalized}Filters.tsx` },
+
+    // Routing & Menu
+    { src: 'routes.hbs', dest: 'routes.tsx' },
+    { src: 'menu.hbs', dest: 'menu.tsx' },
   ];
 
   for (const template of templates) {
@@ -76,13 +111,9 @@ async function main() {
     console.log(chalk.green(`✔️ Created ${template.dest}`));
   }
 
+  updateRootFiles(nameLower);
+
   console.log(chalk.blue.bold(`\n🎉 Module '${nameCapitalized}' generated successfully!`));
-  console.log(chalk.yellow('\nDon\'t forget to add your routes in src/routes/index.tsx:\n'));
-  console.log(chalk.white(`import { ${nameCapitalized}ListPage } from '@/features/${nameLower}/pages/${nameCapitalized}ListPage';`));
-  console.log(chalk.white(`import { ${nameCapitalized}FormPage } from '@/features/${nameLower}/pages/${nameCapitalized}FormPage';`));
-  console.log(chalk.white(`\n<Route path="${nameLower}s" element={<${nameCapitalized}ListPage />} />`));
-  console.log(chalk.white(`<Route path="${nameLower}s/new" element={<${nameCapitalized}FormPage />} />`));
-  console.log(chalk.white(`<Route path="${nameLower}s/update/:id" element={<${nameCapitalized}FormPage />} />\n`));
 }
 
 main().catch(console.error);

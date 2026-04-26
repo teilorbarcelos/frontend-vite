@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/ui/DataTable';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useDataTable } from '@/hooks/useDataTable';
 import { useToast } from '@/hooks/useToast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
