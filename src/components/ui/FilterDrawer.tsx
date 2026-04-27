@@ -58,7 +58,7 @@ export function FilterDrawer({
     return formValues;
   }, [initialValues, fields]);
 
-  const { register, handleSubmit, control } = useForm({
+  const { register, handleSubmit, control, reset } = useForm({
     values: processedValues
   });
 
@@ -86,6 +86,12 @@ export function FilterDrawer({
   };
 
   const handleReset = () => {
+    const emptyValues = fields.reduce((acc, field) => {
+      acc[field.name] = field.type === 'dateRange' ? undefined : '';
+      return acc;
+    }, {} as Record<string, unknown>);
+    
+    reset(emptyValues);
     onFilter({});
     onClose();
   };
