@@ -52,7 +52,6 @@ export function UserFormPage() {
   });
 
   const mutation = userMutations.useSave<UserForm>(isEditing, id, {
-    /* v8 ignore start */
     mutationFn: (data: UserForm) => {
       const payload = { ...data };
       if (!payload.password) {
@@ -64,7 +63,6 @@ export function UserFormPage() {
       }
       return userService.createUser(payload);
     },
-    /* v8 ignore stop */
     onSuccess: () => navigate('/users')
   });
 

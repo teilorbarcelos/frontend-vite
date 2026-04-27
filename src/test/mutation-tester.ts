@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TestWrapper } from './utils';
 
@@ -27,7 +27,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useSave(false), { wrapper: TestWrapper });
         
-        result.current.mutate(createData);
+        act(() => {
+          result.current.mutate(createData);
+        });
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(service[createMethod]).toHaveBeenCalledWith(createData);
@@ -39,7 +41,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useSave(true, '1'), { wrapper: TestWrapper });
         
-        result.current.mutate(updateData);
+        act(() => {
+          result.current.mutate(updateData);
+        });
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(service[updateMethod]).toHaveBeenCalledWith('1', updateData);
@@ -52,7 +56,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useSave(false, undefined, { onSuccess }), { wrapper: TestWrapper });
         
-        result.current.mutate(createData);
+        act(() => {
+          result.current.mutate(createData);
+        });
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(onSuccess).toHaveBeenCalled();
@@ -65,7 +71,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useSave(false, undefined, { onMutate }), { wrapper: TestWrapper });
         
-        result.current.mutate(createData);
+        act(() => {
+          result.current.mutate(createData);
+        });
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(onMutate).toHaveBeenCalled();
@@ -79,7 +87,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useDelete(), { wrapper: TestWrapper });
         
-        result.current.mutate('1');
+        act(() => {
+          result.current.mutate('1');
+        });
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(service[deleteMethod]).toHaveBeenCalledWith('1');
@@ -95,7 +105,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useDelete({ onError }), { wrapper: TestWrapper });
         
-        result.current.mutate('1');
+        act(() => {
+          result.current.mutate('1');
+        });
 
         await waitFor(() => expect(result.current.isError).toBe(true));
         expect(onError).toHaveBeenCalled();
@@ -108,7 +120,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useToggleStatus(), { wrapper: TestWrapper });
         
-        result.current.mutate({ id: '1', active: false });
+        act(() => {
+          result.current.mutate({ id: '1', active: false });
+        });
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(service.toggleStatus).toHaveBeenCalledWith('1', false);
@@ -120,7 +134,9 @@ export function runMutationRegistryTests(config: MutationRegistryTestsConfig) {
 
         const { result } = renderHook(() => registry.useToggleStatus({ onSettled }), { wrapper: TestWrapper });
         
-        result.current.mutate({ id: '1', active: true });
+        act(() => {
+          result.current.mutate({ id: '1', active: true });
+        });
 
         await waitFor(() => expect(onSettled).toHaveBeenCalled());
       });

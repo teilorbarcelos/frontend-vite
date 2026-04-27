@@ -2,6 +2,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ErrorPage } from '@/components/ui/ErrorPage';
 import { AppLayout } from '@/layouts/AppLayout';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { useAuthStore } from '@/stores/auth';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 
@@ -15,6 +16,11 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
     errorElement: <ErrorPage />,
   },
   {

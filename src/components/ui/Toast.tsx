@@ -109,7 +109,7 @@ export const ToastProgress = ({ duration, variant }: { duration?: number; varian
         className={cn(
           "h-full transition-all ease-linear",
           {
-            "bg-gray-500": !variant || variant === "default",
+            "bg-gray-500": variant === "default" || !variant,
             "bg-green-500": variant === "success",
             "bg-red-500": variant === "error",
             "bg-yellow-500": variant === "warning",
