@@ -12,7 +12,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 right-0 z-100 flex max-h-screen w-full flex-col p-4 md:max-w-[420px]",
+      "fixed top-0 right-0 z-100 flex max-h-screen w-full flex-col gap-3 p-4 md:max-w-[420px]",
       className
     )}
     {...props}
@@ -109,7 +109,7 @@ export const ToastProgress = ({ duration, variant }: { duration?: number; varian
         className={cn(
           "h-full transition-all ease-linear",
           {
-            "bg-gray-500": !variant || variant === "default",
+            "bg-gray-500": variant === "default" || !variant,
             "bg-green-500": variant === "success",
             "bg-red-500": variant === "error",
             "bg-yellow-500": variant === "warning",

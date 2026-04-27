@@ -16,7 +16,7 @@ Handlebars.registerHelper('upper', (str) => {
 
 function updateRootFiles(nameLower: string) {
   const routesPath = path.join(__dirname, '../src/routes/index.tsx');
-  const layoutPath = path.join(__dirname, '../src/features/admin/AdminLayout.tsx');
+  const layoutPath = path.join(__dirname, '../src/layouts/AppLayout.tsx');
 
   const inject = (filePath: string, marker: string, code: string, check: string) => {
     if (!fs.existsSync(filePath)) return;
@@ -78,6 +78,8 @@ async function main() {
   fs.mkdirSync(path.join(targetDir, 'constants'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'constants', '__tests__'), { recursive: true });
   fs.mkdirSync(path.join(targetDir, 'components'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'hooks'), { recursive: true });
+  fs.mkdirSync(path.join(targetDir, 'hooks', '__tests__'), { recursive: true });
 
   const templates = [
     // Services
@@ -97,6 +99,10 @@ async function main() {
     
     // Components
     { src: 'filters.hbs', dest: `components/${nameCapitalized}Filters.tsx` },
+
+    // Hooks
+    { src: 'mutations.hbs', dest: `hooks/${nameLower}.mutations.ts` },
+    { src: 'mutationTest.hbs', dest: `hooks/__tests__/${nameLower}.mutations.test.ts` },
 
     // Routing & Menu
     { src: 'routes.hbs', dest: 'routes.tsx' },

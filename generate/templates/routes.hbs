@@ -23,7 +23,7 @@ export const {{nameLower}}Routes: RouteObject[] = [
   {
     path: '{{nameLower}}s/update/:id',
     element: (
-      <ProtectedRoute feature="{{nameLower}}" action="create">
+      <ProtectedRoute feature="{{nameLower}}" action="update">
         <{{capitalize nameLower}}FormPage />
       </ProtectedRoute>
     )

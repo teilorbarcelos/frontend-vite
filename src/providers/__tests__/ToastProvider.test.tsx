@@ -5,18 +5,45 @@ import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../ToastProvider';
 
 const TestComponent = () => {
-  const { success, error, info, warning } = useToast();
+  const { success, error, info, warning, toast } = useToast();
   return (
     <div>
       <button onClick={() => success('Success message')}>Success</button>
       <button onClick={() => error('Error message')}>Error</button>
       <button onClick={() => info('Info message')}>Info</button>
       <button onClick={() => warning('Warning message')}>Warning</button>
+      <button onClick={() => toast({ title: 'With Duration', description: 'Has duration', duration: 5000 })}>With Duration</button>
+      <button onClick={() => toast({ title: 'Explicit Default', description: 'Explicit default variant', variant: 'default', duration: 3000 })}>Explicit Default</button>
+      <button onClick={() => toast({ title: 'Default', description: 'Default message', duration: 3000 })}>Default</button>
     </div>
   );
 };
 
 describe('ToastProvider', () => {
+  it('shows toast with duration', async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastProvider>
+        <TestComponent />
+      </ToastProvider>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'With Duration' }));
+    expect(screen.getByText('Has duration')).toBeInTheDocument();
+  });
+
+  it('shows explicit default toast', async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastProvider>
+        <TestComponent />
+      </ToastProvider>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Explicit Default' }));
+    expect(screen.getByText('Explicit default variant')).toBeInTheDocument();
+  });
+
   it('shows success and error toasts', async () => {
     const user = userEvent.setup();
     render(
@@ -47,6 +74,19 @@ describe('ToastProvider', () => {
     expect(screen.getByText('Warning message')).toBeInTheDocument();
   });
 
+  it('shows default toast without variant', async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastProvider>
+        <TestComponent />
+      </ToastProvider>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Default' }));
+    expect(screen.getByText('Default message')).toBeInTheDocument();
+    expect(screen.getAllByText('Default')).toHaveLength(2); // One button, one title
+  });
+
   it('removes toast when closed and handles internal states', async () => {
     vi.useFakeTimers();
     render(
@@ -67,7 +107,7 @@ describe('ToastProvider', () => {
       closeBtn.click();
     });
 
-    // Advance time to trigger setTimeout(onRemove, 1000)
+    // Advance time to trigger setTimeout(onRemove, 500)
     act(() => {
       vi.advanceTimersByTime(1000);
     });

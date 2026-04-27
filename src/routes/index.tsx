@@ -1,9 +1,9 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ErrorPage } from '@/components/ui/ErrorPage';
-import { AdminLayout } from '@/features/admin/AdminLayout';
+import { AppLayout } from '@/layouts/AppLayout';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { useAuth } from '@/hooks/useAuth';
-import { useEffect } from 'react';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
+import { useAuthStore } from '@/stores/auth';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 
 // Feature Routes
@@ -19,12 +19,21 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
     path: '/',
     element: (
       <ProtectedRoute>
-        <AdminLayout />
+        <AppLayout />
       </ProtectedRoute>
     ),
+    loader: async () => {
+      await useAuthStore.getState().checkAuth();
+      return null;
+    },
     errorElement: <ErrorPage />,
     children: [
       {
@@ -44,12 +53,6 @@ const router = createBrowserRouter([
 ]);
 
 export function AppRoutes() {
-  const { checkAuth } = useAuth();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   return (
     <RouterProvider router={router} />
   );

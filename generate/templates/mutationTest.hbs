@@ -1,0 +1,24 @@
+import { vi, describe } from 'vitest';
+import { runMutationRegistryTests } from '@/test/mutation-tester';
+import { {{nameLower}}Mutations } from '../{{nameLower}}.mutations';
+import { {{nameLower}}Service } from '../../services/{{nameLower}}.service';
+
+vi.mock('../../services/{{nameLower}}.service', () => ({
+  {{nameLower}}Service: {
+    create{{nameCapitalized}}: vi.fn(),
+    update{{nameCapitalized}}: vi.fn(),
+    delete{{nameCapitalized}}: vi.fn(),
+    toggleStatus: vi.fn(),
+  },
+}));
+
+describe('{{nameLower}}Mutations', () => {
+  runMutationRegistryTests({
+    registry: {{nameLower}}Mutations,
+    service: {{nameLower}}Service,
+    entityName: '{{nameLower}}',
+    queryKey: '{{nameLower}}s',
+    createData: { /* TODO: Add test data */ },
+    updateData: { /* TODO: Add test data */ },
+  });
+});

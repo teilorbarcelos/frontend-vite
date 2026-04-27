@@ -1,11 +1,12 @@
 import { useAuthStore } from '@/stores/auth';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { HeaderMapItem } from '../DataTable';
 import { DataTable } from '../DataTable/DataTable';
 import { Pagination } from '../DataTable/Pagination';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../DropdownMenu';
 import { DynamicSelect } from '../DynamicSelect';
+import { Button } from '../Button';
 import { Input } from '../Input';
 import { SearchInput } from '../SearchInput';
 import { StatusBadge } from '../StatusBadge';
@@ -33,10 +34,12 @@ describe('UI Component Edge Cases for Coverage', () => {
   });
 
   it('StatusBadge edge cases', () => {
-    useAuthStore.setState({
-      isAuthenticated: true,
-      isLoading: false,
-      hasPermission: () => false,
+    act(() => {
+      useAuthStore.setState({
+        isAuthenticated: true,
+        isLoading: false,
+        hasPermission: () => false,
+      });
     });
 
     const { rerender } = render(
@@ -46,8 +49,10 @@ describe('UI Component Edge Cases for Coverage', () => {
     const badge = screen.getByText('Ativo');
     expect(badge).toBeDisabled();
 
-    useAuthStore.setState({
-      hasPermission: () => true,
+    act(() => {
+      useAuthStore.setState({
+        hasPermission: () => true,
+      });
     });
     const onClick = vi.fn();
     
@@ -134,10 +139,12 @@ describe('UI Component Edge Cases for Coverage', () => {
   });
 
   it('StatusBadge without onClick or permission', () => {
-    useAuthStore.setState({
-      isAuthenticated: true,
-      isLoading: false,
-      hasPermission: () => true,
+    act(() => {
+      useAuthStore.setState({
+        isAuthenticated: true,
+        isLoading: false,
+        hasPermission: () => true,
+      });
     });
 
     const { rerender } = render(
@@ -147,8 +154,10 @@ describe('UI Component Edge Cases for Coverage', () => {
     // Should not crash when clicked even if onClick is missing
     fireEvent.click(screen.getByText('Ativo'));
 
-    useAuthStore.setState({
-      hasPermission: () => false,
+    act(() => {
+      useAuthStore.setState({
+        hasPermission: () => false,
+      });
     });
     rerender(
       <StatusBadge active={true} feature="user" onClick={vi.fn()} />
@@ -164,5 +173,34 @@ describe('UI Component Edge Cases for Coverage', () => {
     const clearButton = screen.getByRole('button');
     fireEvent.click(clearButton);
     expect(onSearch).toHaveBeenCalledWith('');
+  });
+
+  it('Button with isLoading and disabled combinations', () => {
+    const { rerender } = render(<Button>Click me</Button>);
+    expect(screen.getByRole('button')).not.toBeDisabled();
+    
+    rerender(<Button isLoading>Click me</Button>);
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+
+    rerender(<Button disabled>Click me</Button>);
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(document.querySelector('.animate-spin')).not.toBeInTheDocument();
+
+    rerender(<Button isLoading disabled>Click me</Button>);
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('Input with rightElement and error combinations', () => {
+    const { rerender } = render(<Input />);
+    expect(screen.queryByText('Error')).not.toBeInTheDocument();
+
+    rerender(<Input error="Error" rightElement={<span>Icon</span>} />);
+    expect(screen.getByText('Error')).toBeInTheDocument();
+    expect(screen.getByText('Icon')).toBeInTheDocument();
+
+    rerender(<Input rightElement={<span>Icon</span>} />);
+    expect(screen.queryByText('Error')).not.toBeInTheDocument();
+    expect(screen.getByText('Icon')).toBeInTheDocument();
   });
 });

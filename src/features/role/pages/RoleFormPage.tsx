@@ -1,10 +1,8 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { useLoading } from '@/hooks/useLoading';
-import { useToast } from '@/hooks/useToast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import { roleMutations } from '../hooks/role.mutations';
 import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -28,10 +26,7 @@ type RoleForm = z.infer<typeof roleSchema>;
 export function RoleFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEditing = Boolean(id && id !== 'new');
-  const { success, error: toastError } = useToast();
-  const { showLoading, hideLoading } = useLoading();
 
   const { data: features, isLoading: isLoadingFeatures } = useQuery({
     queryKey: ['features'],
@@ -78,24 +73,8 @@ export function RoleFormPage() {
     name: 'permissions',
   });
 
-  const mutation = useMutation({
-    mutationFn: (data: RoleForm) => {
-      showLoading('Salvando perfil...');
-      if (isEditing) {
-        return roleService.updateRole(id as string, data);
-      }
-      return roleService.createRole(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-      hideLoading();
-      success(isEditing ? 'Perfil atualizado com sucesso!' : 'Perfil criado com sucesso!');
-      navigate('/roles');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      hideLoading();
-      toastError(err.response?.data?.message || 'Erro ao salvar perfil. Tente novamente.');
-    }
+  const mutation = roleMutations.useSave<RoleForm>(isEditing, id, {
+    onSuccess: () => navigate('/roles')
   });
 
   const onSubmit = (data: RoleForm) => {

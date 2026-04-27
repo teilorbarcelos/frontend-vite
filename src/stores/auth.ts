@@ -6,6 +6,7 @@ export interface Permission {
   feature: string;
   view: boolean;
   create: boolean;
+  update: boolean;
   delete: boolean;
   activate: boolean;
 }
@@ -38,6 +39,10 @@ export const hasPermission = (user: User | null, feature: string, action: keyof 
   const permission = permissions.find(p => p.feature === feature);
 
   if (permission) {
+    // Se a ação for 'update' e não estiver definida, usamos o valor de 'create'
+    if (action === 'update' && (permission.update === undefined || permission.update === null)) {
+      return !!permission.create;
+    }
     return !!permission[action];
   }
 

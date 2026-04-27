@@ -90,7 +90,6 @@ export function FilterDrawer({
     onClose();
   };
 
-  if (!isOpen) return null;
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>

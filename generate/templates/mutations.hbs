@@ -1,0 +1,17 @@
+import { createMutationRegistry } from '@/hooks/MutationRegistry';
+import { {{nameLower}}Service, type {{nameCapitalized}} } from '../services/{{nameLower}}.service';
+
+export const {{nameLower}}Mutations = createMutationRegistry<{{nameCapitalized}}>({
+  queryKey: '{{nameLower}}s',
+  service: {{nameLower}}Service,
+  name: '{{nameLower}}',
+  messages: {
+    saveSuccess: (isEditing) => isEditing ? '{{nameCapitalized}} atualizado com sucesso!' : '{{nameCapitalized}} criado com sucesso!',
+    saveError: 'Erro ao salvar {{nameLower}}. Tente novamente.',
+    deleteSuccess: '{{nameCapitalized}} excluído com sucesso!',
+    deleteError: 'Erro ao excluir {{nameLower}}.',
+    toggleStatusSuccess: 'Status do {{nameLower}} atualizado!',
+    toggleStatusError: 'Erro ao atualizar status.',
+    loadingLabel: 'Salvando {{nameLower}}...'
+  }
+});

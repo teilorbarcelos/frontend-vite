@@ -1,4 +1,3 @@
-import { shouldTriggerToastRemoval } from '@/utils/validation';
 import {
   ToastProvider as RadixToastProvider,
   ToastClose,
@@ -9,9 +8,9 @@ import {
   ToastTitle,
   ToastViewport,
 } from '@/components/ui/Toast';
-import React, { useCallback, type ReactNode } from 'react';
-import { useToastStore } from '@/stores/toast';
 import type { Toast } from '@/stores/toast';
+import { useToastStore } from '@/stores/toast';
+import React, { type ReactNode } from 'react';
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const { toasts, removeToast } = useToastStore();
@@ -21,11 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       
       {toasts.map((toast) => (
-        <ToastItem 
-          key={toast.id} 
-          toast={toast} 
-          onRemove={() => removeToast(toast.id)} 
-        />
+        <ToastItem key={toast.id} toast={toast} removeToast={removeToast} />
       ))}
       
       <ToastViewport />
@@ -33,19 +28,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
+export const ToastItem = React.memo(({ toast, removeToast }: { toast: Toast; removeToast: (id: string) => void }) => {
   const [open, setOpen] = React.useState(true);
 
-  const handleOpenChange = useCallback((isOpen: boolean) => {
+  // Sincroniza o fechamento do Radix com a remoção da store de forma estável
+  const handleOpenChange = React.useCallback((isOpen: boolean) => {
     setOpen(isOpen);
-    void (shouldTriggerToastRemoval(isOpen) && setTimeout(onRemove, 1000));
-  }, [onRemove]);
+    setTimeout(() => removeToast(toast.id), 500);
+  }, [removeToast, toast.id]);
 
   return (
     <ToastRoot 
       open={open} 
       variant={toast.variant} 
-      duration={toast.duration || 3000}
+      duration={toast.duration}
       onOpenChange={handleOpenChange}
     >
       <div className="flex gap-3 items-start">
@@ -56,7 +52,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
         </div>
       </div>
       <ToastClose />
-      <ToastProgress duration={toast.duration || 3000} variant={toast.variant} />
+      <ToastProgress duration={toast.duration} variant={toast.variant} />
     </ToastRoot>
   );
-}
+});

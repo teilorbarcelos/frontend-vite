@@ -2,11 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { productService } from '../services/product.service';
-import { useLoading } from '@/hooks/useLoading';
-import { useToast } from '@/hooks/useToast';
+import { productMutations } from '../hooks/product.mutations';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -24,9 +22,7 @@ type ProductForm = z.infer<typeof productSchema>;
 export function ProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEditing = Boolean(id && id !== 'new');
-  const { success, error: toastError } = useToast();
 
   const { data: product, isLoading: isLoadingProduct } = useQuery({
     queryKey: ['product', id],
@@ -50,26 +46,8 @@ export function ProductFormPage() {
     } : undefined,
   });
 
-  const { showLoading, hideLoading } = useLoading();
-
-  const mutation = useMutation({
-    mutationFn: (data: ProductForm) => {
-      showLoading('Salvando produto...');
-      if (isEditing) {
-        return productService.updateProduct(id as string, data);
-      }
-      return productService.createProduct(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      hideLoading();
-      success(isEditing ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
-      navigate('/products');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      hideLoading();
-      toastError(err.response?.data?.message || 'Erro ao salvar produto. Tente novamente.');
-    }
+  const mutation = productMutations.useSave<ProductForm>(isEditing, id, {
+    onSuccess: () => navigate('/products')
   });
 
   const onSubmit = (data: ProductForm) => {

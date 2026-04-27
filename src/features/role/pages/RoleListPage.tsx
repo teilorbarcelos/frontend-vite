@@ -1,9 +1,7 @@
 import { DataTable } from '@/components/ui/DataTable';
 import { useAuth } from '@/hooks/useAuth';
 import { useDataTable } from '@/hooks/useDataTable';
-import { useToast } from '@/hooks/useToast';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ListPageHeader } from '@/components/ui/ListPageHeader';
@@ -11,6 +9,7 @@ import { RoleFilters } from '../components/RoleFilters';
 import { ROLE_SEARCHABLE_FIELDS as searchFields } from '../constants/role.constants';
 import { getRoleColumns } from '../constants/roleHeaderMap';
 import { roleService } from '../services/role.service';
+import { roleMutations } from '../hooks/role.mutations';
 
 export function RoleListPage() {
   const {
@@ -26,12 +25,11 @@ export function RoleListPage() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { hasPermission } = useAuth();
 
   const permissions = useMemo(() => ({
     canCreate: hasPermission('role', 'create'),
-    canUpdate: hasPermission('role', 'create'),
+    canUpdate: hasPermission('role', 'update'),
     canDelete: hasPermission('role', 'delete'),
   }), [hasPermission]);
 
@@ -49,29 +47,8 @@ export function RoleListPage() {
     placeholderData: (previousData) => previousData,
   });
 
-  const { success, error: toastError } = useToast();
-
-  const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) => roleService.toggleStatus(id, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-      success('Status da role atualizado!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao atualizar status.');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => roleService.deleteRole(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-      success('Role excluída com sucesso!');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      toastError(err.response?.data?.message || 'Erro ao excluir role.');
-    }
-  });
+  const toggleStatusMutation = roleMutations.useToggleStatus();
+  const deleteMutation = roleMutations.useDelete();
 
   const columns = getRoleColumns(
     (id, active) => toggleStatusMutation.mutate({ id, active }),

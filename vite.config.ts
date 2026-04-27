@@ -35,6 +35,8 @@ export default defineConfig({
         '**/*.test.ts',
         'dist/**',
         'node_modules/**',
+        '**/index.ts',
+        '**/types.ts',
       ],
     },
   },

@@ -2,11 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { {{nameLower}}Service } from '../services/{{nameLower}}.service';
-import { useLoading } from '@/hooks/useLoading';
-import { useToast } from '@/hooks/useToast';
+import { {{nameLower}}Mutations } from '../hooks/{{nameLower}}.mutations';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -19,9 +17,7 @@ type {{nameCapitalized}}Form = z.infer<typeof {{nameLower}}Schema>;
 export function {{nameCapitalized}}FormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEditing = Boolean(id && id !== 'new');
-  const { success, error: toastError } = useToast();
 
   const { data: item, isLoading: isLoadingItem } = useQuery({
     queryKey: ['{{nameLower}}', id],
@@ -40,26 +36,8 @@ export function {{nameCapitalized}}FormPage() {
     } : undefined,
   });
 
-  const { showLoading, hideLoading } = useLoading();
-
-  const mutation = useMutation({
-    mutationFn: (data: {{nameCapitalized}}Form) => {
-      showLoading('Salvando registro...');
-      if (isEditing) {
-        return {{nameLower}}Service.update{{nameCapitalized}}(id as string, data);
-      }
-      return {{nameLower}}Service.create{{nameCapitalized}}(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['{{nameLower}}s'] });
-      hideLoading();
-      success(isEditing ? 'Atualizado com sucesso!' : 'Criado com sucesso!');
-      navigate('/{{nameLower}}s');
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      hideLoading();
-      toastError(err.response?.data?.message || 'Erro ao salvar. Tente novamente.');
-    }
+  const mutation = {{nameLower}}Mutations.useSave<{{nameCapitalized}}Form>(isEditing, id, {
+    onSuccess: () => navigate('/{{nameLower}}s')
   });
 
   const onSubmit = (data: {{nameCapitalized}}Form) => {
