@@ -23,7 +23,7 @@ export const roleRoutes: RouteObject[] = [
   { 
     path: 'roles/update/:id', 
     element: (
-      <ProtectedRoute feature="role" action="create">
+      <ProtectedRoute feature="role" action="update">
         <RoleFormPage />
       </ProtectedRoute>
     ) 
