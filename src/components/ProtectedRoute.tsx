@@ -5,7 +5,7 @@ import React from 'react';
 export const ProtectedRoute = ({ children, feature, action }: { 
   children: React.ReactNode, 
   feature?: string, 
-  action?: 'view' | 'create' | 'delete' | 'activate' 
+  action?: 'view' | 'create' | 'update' | 'delete' | 'activate' 
 }) => {
   const { isAuthenticated, isLoading, hasPermission } = useAuth();
   

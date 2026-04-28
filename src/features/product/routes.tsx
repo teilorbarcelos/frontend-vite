@@ -23,7 +23,7 @@ export const productRoutes: RouteObject[] = [
   { 
     path: 'products/update/:id', 
     element: (
-      <ProtectedRoute feature="product" action="create">
+      <ProtectedRoute feature="product" action="update">
         <ProductFormPage />
       </ProtectedRoute>
     ) 

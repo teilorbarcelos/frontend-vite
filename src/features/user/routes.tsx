@@ -23,7 +23,7 @@ export const userRoutes: RouteObject[] = [
   { 
     path: 'users/update/:id', 
     element: (
-      <ProtectedRoute feature="user" action="create">
+      <ProtectedRoute feature="user" action="update">
         <UserFormPage />
       </ProtectedRoute>
     ) 
