@@ -41,7 +41,7 @@ export function LoginPage() {
   const onLoginSubmit = (data: LoginForm) => {
     loginMutation.mutate(data, {
       onSuccess: (res) => {
-        login(res.token, res.user);
+        login(res.token, res.refreshToken, res.user);
         navigate('/dashboard');
       },
     });
