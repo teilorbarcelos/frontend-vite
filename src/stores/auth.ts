@@ -27,7 +27,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   setAuth: (user: User | null) => void;
-  login: (token: string, user: User) => void;
+  login: (token: string, refreshToken: string, user: User) => void;
   logout: () => void;
   checkAuth: () => Promise<void>;
   hasPermission: (feature: string, action: keyof Omit<Permission, 'feature'>) => boolean;
@@ -70,8 +70,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     isLoading: false 
   }),
 
-  login: (token, user) => {
+  login: (token, refreshToken, user) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('refreshToken', refreshToken);
     set({ user, isAuthenticated: true, isLoading: false });
   },
 

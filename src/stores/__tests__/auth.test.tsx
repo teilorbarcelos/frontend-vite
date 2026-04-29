@@ -22,7 +22,7 @@ const TestComponent = () => {
     <div>
       <div data-testid="auth-status">{isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</div>
       <div data-testid="user-name">{user?.name}</div>
-      <button onClick={() => login('token123', { id: '1', name: 'John', email: 'john@test.com', role: { id: '1', name: 'TestRole', permissions: [{ feature: 'users', view: true, create: true, delete: false, activate: true }, { feature: 'roles', view: false, create: false, delete: false, activate: false }] } } as any)}>Login</button>
+      <button onClick={() => login('token123', 'refresh123', { id: '1', name: 'John', email: 'john@test.com', role: { id: '1', name: 'TestRole', permissions: [{ feature: 'users', view: true, create: true, delete: false, activate: true }, { feature: 'roles', view: false, create: false, delete: false, activate: false }] } } as any)}>Login</button>
       <button onClick={logout}>Logout</button>
       <div data-testid="permission">{hasPermission('users', 'create') ? 'Has Create' : 'No Create'}</div>
       <div data-testid="no-permission">{hasPermission('roles', 'view') ? 'Has View' : 'No View'}</div>
@@ -60,12 +60,14 @@ describe('AuthStore', () => {
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
       expect(localStorage.getItem('token')).toBe('token123');
+      expect(localStorage.getItem('refreshToken')).toBe('refresh123');
     });
 
     fireEvent.click(screen.getByText('Logout'));
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Not Authenticated');
       expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('refreshToken')).toBeNull();
     });
   });
 
