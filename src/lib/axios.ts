@@ -1,7 +1,36 @@
-import axios from 'axios';
+import { CONFIG } from '@/config/env';
+import { useAuthStore } from '@/stores/auth';
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+let isRefreshing = false;
+let failedQueue: { resolve: (token: string) => void; reject: (error: AxiosError | Error) => void }[] = [];
+
+/**
+ * Função interna para testes - não use em produção
+ */
+export const __resetInterceptorState = () => {
+  isRefreshing = false;
+  failedQueue = [];
+};
+
+const processQueue = (error: AxiosError | Error | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token!);
+    }
+  });
+
+  failedQueue = [];
+};
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8888',
+  baseURL: CONFIG.API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,37 +44,87 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const clearSessionAndRedirect = () => {
+  if (useAuthStore?.getState) {
+    useAuthStore.getState().logout();
+  }
+  
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+};
+
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    const isPublicAuthRequest = originalRequest.url?.includes('/v1/auth/login') || 
-                               originalRequest.url?.includes('/v1/auth/password/validate') ||
-                               originalRequest.url?.includes('/v1/auth/password/change');
+  async (error: AxiosError) => {
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+    
+    if (!originalRequest || !error.response) {
+      return Promise.reject(error);
+    }
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isPublicAuthRequest) {
+    const url = originalRequest.url || '';
+    const isPublicAuthRequest = url.includes('/v1/auth/login') || 
+                               url.includes('/v1/auth/password/validate') ||
+                               url.includes('/v1/auth/password/change');
+
+    if (error.response.status === 401 && !originalRequest._retry && !isPublicAuthRequest) {
+      
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token as string}`;
+            }
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       const refreshToken = localStorage.getItem('refreshToken');
+      
       if (refreshToken) {
         try {
-          const res = await axios.post('http://localhost:8888/v1/auth/refresh', { refreshToken });
+          const res = await axios.post(`${CONFIG.API_URL}/v1/auth/refresh`, { refreshToken });
           const { token, refreshToken: newRefreshToken } = res.data;
+          
           localStorage.setItem('token', token);
-          localStorage.setItem('refreshToken', newRefreshToken);
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken);
+          }
+          
+          if (api.defaults && api.defaults.headers && api.defaults.headers.common) {
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          }
+          
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
+          
+          processQueue(null, token);
           return api(originalRequest);
         } catch (refreshError) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
+          const err = refreshError as AxiosError;
+          console.error(`[Axios Interceptor] Refresh call failed:`, err.response?.status || err.message);
+          processQueue(err, null);
+          clearSessionAndRedirect();
+          return Promise.reject(err);
+        } finally {
+          isRefreshing = false;
         }
       } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        clearSessionAndRedirect();
+        return Promise.reject(error);
       }
     }
+    
     return Promise.reject(error);
   }
 );
