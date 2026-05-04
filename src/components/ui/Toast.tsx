@@ -104,12 +104,12 @@ export const ToastProgress = ({ duration, variant }: { duration?: number; varian
   if (!duration) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/5">
+    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-100/50 overflow-hidden rounded-b-xl">
       <div
         className={cn(
-          "h-full transition-all ease-linear",
+          "h-full transition-all ease-linear group-hover:paused",
           {
-            "bg-gray-500": variant === "default" || !variant,
+            "bg-gray-400": variant === "default" || !variant,
             "bg-green-500": variant === "success",
             "bg-red-500": variant === "error",
             "bg-yellow-500": variant === "warning",
@@ -120,12 +120,6 @@ export const ToastProgress = ({ duration, variant }: { duration?: number; varian
           animation: `toast-progress ${duration}ms linear forwards`,
         }}
       />
-      <style>{`
-        @keyframes toast-progress {
-          from { width: 100%; }
-          to { width: 0%; }
-        }
-      `}</style>
     </div>
   );
 };

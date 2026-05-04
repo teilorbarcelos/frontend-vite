@@ -19,41 +19,71 @@ interface ToastState {
   removeToast: (id: string) => void;
 }
 
+const DEFAULT_DURATION = 3000;
+
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
 
   toast: (options) => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({
-      toasts: [...state.toasts, { ...options, id }],
+      toasts: [...state.toasts, { 
+        duration: DEFAULT_DURATION,
+        ...options, 
+        id 
+      }],
     }));
   },
 
   success: (message, title = 'Sucesso!') => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({
-      toasts: [...state.toasts, { description: message, title, variant: 'success', id }],
+      toasts: [...state.toasts, { 
+        description: message, 
+        title, 
+        variant: 'success', 
+        duration: DEFAULT_DURATION,
+        id 
+      }],
     }));
   },
 
   error: (message, title = 'Erro!') => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({
-      toasts: [...state.toasts, { description: message, title, variant: 'error', id }],
+      toasts: [...state.toasts, { 
+        description: message, 
+        title, 
+        variant: 'error', 
+        duration: DEFAULT_DURATION,
+        id 
+      }],
     }));
   },
 
   info: (message, title = 'Informação') => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({
-      toasts: [...state.toasts, { description: message, title, variant: 'info', id }],
+      toasts: [...state.toasts, { 
+        description: message, 
+        title, 
+        variant: 'info', 
+        duration: DEFAULT_DURATION,
+        id 
+      }],
     }));
   },
 
   warning: (message, title = 'Atenção!') => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({
-      toasts: [...state.toasts, { description: message, title, variant: 'warning', id }],
+      toasts: [...state.toasts, { 
+        description: message, 
+        title, 
+        variant: 'warning', 
+        duration: DEFAULT_DURATION,
+        id 
+      }],
     }));
   },
 

@@ -1,6 +1,15 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { ToastIcon, ToastProgress } from '../Toast';
+import { 
+  ToastClose, 
+  ToastDescription, 
+  ToastIcon, 
+  ToastProgress, 
+  ToastProvider, 
+  ToastRoot, 
+  ToastTitle, 
+  ToastViewport 
+} from '../Toast';
 
 describe('Toast Components', () => {
   it('renders ToastIcon for different variants', () => {
@@ -33,5 +42,22 @@ describe('Toast Components', () => {
   it('does not render ToastProgress when duration is missing', () => {
     const { container } = render(<ToastProgress />);
     expect(container.firstChild).toBeNull();
+  });
+
+  it('renders all Toast sub-components', () => {
+    const { getByText, getByLabelText } = render(
+      <ToastProvider>
+        <ToastRoot variant="success">
+          <ToastTitle>Title</ToastTitle>
+          <ToastDescription>Description</ToastDescription>
+          <ToastClose />
+        </ToastRoot>
+        <ToastViewport />
+      </ToastProvider>
+    );
+    
+    expect(getByText('Title')).toBeInTheDocument();
+    expect(getByText('Description')).toBeInTheDocument();
+    expect(getByLabelText('Fechar')).toBeInTheDocument();
   });
 });

@@ -16,7 +16,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const { toasts, removeToast } = useToastStore();
 
   return (
-    <RadixToastProvider swipeDirection="right">
+    <RadixToastProvider swipeDirection="right" duration={3000}>
       {children}
       
       {toasts.map((toast) => (
@@ -28,20 +28,32 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const ToastItem = React.memo(({ toast, removeToast }: { toast: Toast; removeToast: (id: string) => void }) => {
+export function ToastItem({ toast, removeToast }: { toast: Toast; removeToast: (id: string) => void }) {
   const [open, setOpen] = React.useState(true);
+
+  // Forçamos o fechamento após a duração, já que o Radix ignora 'duration' quando 'open' é controlado
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setOpen(false);
+    }, toast.duration || 3000);
+
+    return () => clearTimeout(timer);
+  }, [toast.duration]);
 
   // Sincroniza o fechamento do Radix com a remoção da store de forma estável
   const handleOpenChange = React.useCallback((isOpen: boolean) => {
     setOpen(isOpen);
-    setTimeout(() => removeToast(toast.id), 500);
+    if (!isOpen) {
+      // Aguarda a animação de saída (500ms) antes de remover do estado global
+      setTimeout(() => removeToast(toast.id), 500);
+    }
   }, [removeToast, toast.id]);
 
   return (
     <ToastRoot 
-      open={open} 
+      open={open}
       variant={toast.variant} 
-      duration={toast.duration}
+      duration={toast.duration || 3000}
       onOpenChange={handleOpenChange}
     >
       <div className="flex gap-3 items-start">
@@ -52,7 +64,7 @@ export const ToastItem = React.memo(({ toast, removeToast }: { toast: Toast; rem
         </div>
       </div>
       <ToastClose />
-      <ToastProgress duration={toast.duration} variant={toast.variant} />
+      <ToastProgress duration={toast.duration || 3000} variant={toast.variant} />
     </ToastRoot>
   );
-});
+}
