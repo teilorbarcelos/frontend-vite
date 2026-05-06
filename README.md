@@ -68,9 +68,7 @@ Para manter a consistência e acelerar o desenvolvimento, o projeto conta com um
 Execute o comando abaixo no terminal:
 
 ```bash
-npm run generate
-# ou se preferir usar bun diretamente:
-bun run generate
+make generate
 ```
 
 ### O que o gerador faz:
@@ -102,12 +100,13 @@ import { CategoryFormPage } from '@/features/category/pages/CategoryFormPage';
 
 | Comando | Descrição |
 | :--- | :--- |
-| `npm run dev` | Inicia o servidor de desenvolvimento. |
-| `npm run build` | Cria o build de produção otimizado. |
-| `npm run test` | Executa a suíte de testes com Vitest. |
-| `npm run test:coverage` | Gera relatório de cobertura de testes. |
-| `npm run lint` | Executa a verificação do linter. |
-| `npm run generate` | Inicia o assistente de criação de novos módulos. |
+| `make setup` | Instala as dependências do projeto. |
+| `make dev` | Inicia o servidor de desenvolvimento. |
+| `make build` | Cria o build de produção otimizado. |
+| `make test` | Executa a suíte de testes com Vitest. |
+| `make coverage` | Gera relatório de cobertura de testes. |
+| `make lint` | Executa a verificação do linter. |
+| `make generate` | Inicia o assistente de criação de novos módulos. |
 
 ---
 
