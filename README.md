@@ -96,6 +96,15 @@ import { CategoryFormPage } from '@/features/category/pages/CategoryFormPage';
 
 ---
 
+## 📊 Painel de Dashboard Analítico (Métricas)
+
+A aplicação possui uma tela de Dashboard moderna para acompanhamento das atividades operacionais e de usuários do sistema em tempo real:
+- **Visualizações Reativas com Recharts:** Painel responsivo que renderiza gráficos de área com gradientes suaves de cor para novos usuários cadastrados, gráficos de barra para o total de produtos criados e um ranking vertical de criadores mais ativos.
+- **Tooltips Personalizados:** Tooltips interativos.
+- **Filtro de Range de Datas:** Totalmente integrado ao componente `DateRangePicker`, atualizando os gráficos instantaneamente via React Query ao alterar o período selecionado.
+
+---
+
 ## 🚀 Comandos Disponíveis
 
 | Comando | Descrição |

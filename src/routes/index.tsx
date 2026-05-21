@@ -11,6 +11,7 @@ import { productRoutes } from '@/features/product/routes';
 import { roleRoutes } from '@/features/role/routes';
 import { userRoutes } from '@/features/user/routes';
 // [GENERATE_FEATURE_ROUTES_IMPORT]
+import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 
 const router = createBrowserRouter([
   {
@@ -42,7 +43,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <div className="p-4">Dashboard</div>,
+        element: <DashboardPage />,
       },
       ...roleRoutes,
       ...userRoutes,
