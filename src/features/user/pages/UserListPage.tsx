@@ -10,6 +10,7 @@ import { UserFilters } from '../components/UserFilters';
 import { USER_SEARCHABLE_FIELDS as searchFields } from '../constants/user.constants';
 import { getUserColumns } from '../constants/userHeaderMap';
 import { userService } from '../services/user.service';
+import { ExportPdfButton } from '@/components/ui/ExportPdfButton';
 
 export function UserListPage() {
   const {
@@ -68,6 +69,13 @@ export function UserListPage() {
         filterCount={Object.keys(filters).length}
         onCreateClick={permissions.canCreate ? () => navigate('/users/new') : undefined}
         createLabel="Novo Usuário"
+        extraActions={
+          <ExportPdfButton
+            onExport={userService.exportUsersPdf}
+            queryParams={{ searchWord, searchFields, filters, sort }}
+            filename="usuarios.pdf"
+          />
+        }
       />
 
       <UserFilters

@@ -80,4 +80,35 @@ describe('userService', () => {
     await userService.toggleStatus('1', false);
     expect(api.patch).toHaveBeenCalledWith('/v1/user/1/status', { active: false });
   });
+
+  describe('exportUsersPdf', () => {
+    it('calls correct endpoint with minimal options', async () => {
+      (api.get as Mock).mockResolvedValue({ data: new Blob() });
+      await userService.exportUsersPdf({});
+      expect(api.get).toHaveBeenCalledWith('/v1/user/export/pdf', {
+        params: {},
+        responseType: 'blob',
+      });
+    });
+
+    it('calls correct endpoint with search, filter and sort options', async () => {
+      (api.get as Mock).mockResolvedValue({ data: new Blob() });
+      await userService.exportUsersPdf({
+        searchWord: 'test',
+        searchFields: ['name', 'email'],
+        filters: { active: true },
+        sort: { orderBy: 'name', orderDirection: 'asc' },
+      });
+      expect(api.get).toHaveBeenCalledWith('/v1/user/export/pdf', {
+        params: {
+          searchWord: 'test',
+          searchFields: 'name,email',
+          active: true,
+          orderBy: 'name',
+          orderDirection: 'asc',
+        },
+        responseType: 'blob',
+      });
+    });
+  });
 });

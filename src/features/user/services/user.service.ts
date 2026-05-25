@@ -52,5 +52,22 @@ export const userService = {
   toggleStatus: async (id: string, active: boolean) => {
     const res = await api.patch(`/v1/user/${id}/status`, { active });
     return res.data;
+  },
+  exportUsersPdf: async (options: {
+    searchWord?: string;
+    searchFields?: string[];
+    filters?: Record<string, unknown>;
+    sort?: { orderBy?: string; orderDirection?: string };
+  }) => {
+    const { searchWord, searchFields, filters = {}, sort } = options;
+    const res = await api.get('/v1/user/export/pdf', {
+      params: {
+        ...(searchWord ? { searchWord, searchFields: searchFields?.join(',') } : {}),
+        ...filters,
+        ...(sort?.orderBy ? { orderBy: sort.orderBy, orderDirection: sort.orderDirection } : {})
+      },
+      responseType: 'blob'
+    });
+    return res.data;
   }
 };

@@ -10,6 +10,7 @@ interface ListPageHeaderProps {
   onCreateClick?: () => void;
   createLabel?: string;
   searchPlaceholder?: string;
+  extraActions?: React.ReactNode;
 }
 
 export function ListPageHeader({
@@ -20,6 +21,7 @@ export function ListPageHeader({
   onCreateClick,
   createLabel = 'Novo',
   searchPlaceholder,
+  extraActions,
 }: ListPageHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-6 shrink-0">
@@ -43,6 +45,7 @@ export function ListPageHeader({
             </span>
           )}
         </Button>
+        {extraActions}
         {onCreateClick && (
           <Button onClick={onCreateClick}>
             <Plus className="w-4 h-4 mr-2" />
