@@ -38,18 +38,18 @@ export function DateRangePicker({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value?.from ? (
-              value.to ? (
-                <>
-                  {format(value.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                  {format(value.to, "dd/MM/yyyy", { locale: ptBR })}
-                </>
-              ) : (
-                format(value.from, "dd/MM/yyyy", { locale: ptBR })
-              )
-            ) : (
-              <span>{placeholder}</span>
-            )}
+            {(() => {
+              if (!value?.from) return <span>{placeholder}</span>;
+              if (value.to) {
+                return (
+                  <>
+                    {format(value.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                    {format(value.to, "dd/MM/yyyy", { locale: ptBR })}
+                  </>
+                );
+              }
+              return format(value.from, "dd/MM/yyyy", { locale: ptBR });
+            })()}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 rounded-xl overflow-hidden" align="start">

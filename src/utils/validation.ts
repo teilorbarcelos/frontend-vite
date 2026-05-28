@@ -27,7 +27,7 @@ export const formatDateRange = (name: string, from: Date, to?: Date | null): Rec
   result[`${name}_start`] = format(from, 'yyyy-MM-dd');
   
   // If to is missing, use from (covers the || branch)
-  const endDate = to ? to : from;
+  const endDate = to ?? from;
   result[`${name}_end`] = format(endDate, 'yyyy-MM-dd');
   
   return result;

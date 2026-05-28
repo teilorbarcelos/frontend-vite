@@ -28,7 +28,9 @@ export function Pagination({
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS
 }: PaginationProps) {
   const handlePageChange = (page: number) => {
-    void (isPageInRange(page, totalPages) && onPageChange(page));
+    if (isPageInRange(page, totalPages)) {
+      onPageChange(page);
+    }
   };
 
   if (totalPages <= 1 && !onPageSizeChange) return null;
@@ -151,7 +153,7 @@ export function Pagination({
             {pageNumbers.map((page, index) => {
               if (page === '...') {
                 return (
-                  <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                  <span key={`ellipsis-${index.toString()}`} className="px-2 text-gray-400">
                     ...
                   </span>
                 );
@@ -160,7 +162,7 @@ export function Pagination({
               const isCurrent = page === currentPage;
               return (
                 <button
-                  key={`page-${page}`}
+                  key={`page-${page.toString()}`}
                   onClick={() => handlePageChange(Number(page))}
                   className={cn(
                     "min-w-[36px] h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-all",

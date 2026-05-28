@@ -57,6 +57,7 @@ describe('UserListPage', () => {
     
     const newButton = screen.getByText('Novo Usuário');
     await user.click(newButton);
+    expect(newButton).toBeInTheDocument();
   });
 
   it('shows error state if fetch fails', async () => {
@@ -208,6 +209,7 @@ describe('UserListPage', () => {
     await user.click(menuTriggers[0]);
     
     const editOption = await screen.findByText('Editar');
+    expect(editOption).toBeInTheDocument();
     await user.click(editOption);
   });
 

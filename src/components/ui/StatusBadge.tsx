@@ -16,18 +16,18 @@ export function StatusBadge({ active, feature, onClick }: StatusBadgeProps) {
     }
   };
 
+  const activeClass = active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  let hoverClass = 'cursor-not-allowed opacity-70';
+  if (canActivate) {
+    hoverClass = `cursor-pointer hover:ring-2 hover:ring-offset-1 ${active ? 'hover:ring-green-300' : 'hover:ring-red-300'}`;
+  }
+
   return (
     <button
       onClick={handleClick}
       disabled={!canActivate}
       type="button"
-      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full transition-all ${
-        active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-      } ${
-        canActivate 
-          ? 'cursor-pointer hover:ring-2 hover:ring-offset-1 ' + (active ? 'hover:ring-green-300' : 'hover:ring-red-300')
-          : 'cursor-not-allowed opacity-70'
-      }`}
+      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full transition-all ${activeClass} ${hoverClass}`}
     >
       {active ? 'Ativo' : 'Inativo'}
     </button>

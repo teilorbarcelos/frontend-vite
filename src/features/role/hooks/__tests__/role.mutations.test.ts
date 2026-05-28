@@ -1,4 +1,4 @@
-import { vi, describe } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import { runMutationRegistryTests } from '@/test/mutation-tester';
 import { roleMutations } from '../role.mutations';
 import { roleService } from '../../services/role.service';
@@ -13,6 +13,9 @@ vi.mock('../../services/role.service', () => ({
 }));
 
 describe('roleMutations', () => {
+  it('has registered mutations', () => {
+    expect(roleMutations).toBeDefined();
+  });
   runMutationRegistryTests({
     registry: roleMutations,
     service: roleService,

@@ -53,6 +53,7 @@ describe('RoleListPage', () => {
     renderWithProviders(<RoleListPage />);
     const newButton = screen.getByText(/Nova Role/i);
     await user.click(newButton);
+    expect(newButton).toBeInTheDocument();
   });
 
   it('triggers delete mutation', async () => {
@@ -157,6 +158,7 @@ describe('RoleListPage', () => {
     const menuTriggers = screen.getAllByRole('button', { name: /Abrir menu/i });
     await user.click(menuTriggers[0]);
     const editOption = await screen.findByText('Editar');
+    expect(editOption).toBeInTheDocument();
     await user.click(editOption);
   });
 

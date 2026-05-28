@@ -1,7 +1,7 @@
-import * as React from 'react';
-import type { ReactNode } from 'react';
-import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Edit2, MoreHorizontal, Trash2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import * as React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,9 +95,9 @@ export function DataTableActions({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {actions.map((action, idx) => (
+            {actions.map((action) => (
               <DropdownMenuItem 
-                key={idx} 
+                key={action.label} 
                 onClick={action.onClick}
                 className={action.className}
               >

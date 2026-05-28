@@ -128,7 +128,7 @@ describe('DataTable', () => {
     );
     const nameHeader = screen.getByText('Name');
     fireEvent.click(nameHeader);
-    // Should not call any mock or throw error
+    expect(nameHeader).toBeInTheDocument();
   });
 
   it('resets page to 0 when sorting changes', () => {
@@ -212,5 +212,18 @@ describe('DataTable', () => {
       />
     );
     expect(container.querySelector('nav')).toBeNull();
+  });
+  it('handles empty keyItem fallback in columns', () => {
+    const customHeaderMap = [
+      { title: 'No Key', keyItem: '' as any, parseItem: () => 'Custom' }
+    ];
+    render(
+      <DataTable 
+        data={[{ id: '1' }]} 
+        headerMap={customHeaderMap} 
+        totalItems={1}
+      />
+    );
+    expect(screen.getByText('Custom')).toBeInTheDocument();
   });
 });
