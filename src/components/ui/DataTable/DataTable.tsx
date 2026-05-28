@@ -1,8 +1,7 @@
 import { cn } from '@/utils/cn';
 import { getValueByPath } from '@/utils/getValueByPath';
 import {
-  ArrowDown,
-  ArrowUp,
+
   ArrowUpDown,
   Loader2
 } from 'lucide-react';
@@ -57,7 +56,7 @@ export function DataTable<T>({
 
                   return (
                     <TableHead
-                      key={idx}
+                      key={col.keyItem || `col-${idx}`}
                       onClick={() => col.sortable && handleSort(col.keyItem)}
                       className={cn(
                         col.sortable && "cursor-pointer select-none hover:bg-gray-50 transition-colors group"
@@ -71,7 +70,7 @@ export function DataTable<T>({
                             isSorted ? "text-indigo-600" : "text-gray-300 group-hover:text-gray-400"
                           )}>
                             {isSorted ? (
-                              sorting.value.orderDirection === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />
+                              <ArrowUpDown className="w-4 h-4 transition-transform duration-200 data-[state=asc]:rotate-0 data-[state=desc]:rotate-180" data-state={sorting.value.orderDirection} />
                             ) : (
                               <ArrowUpDown className="w-4 h-4" />
                             )}
@@ -86,13 +85,13 @@ export function DataTable<T>({
             <TableBody>
               {data.length > 0 ? (
                 data.map((item, rowIdx) => (
-                  <TableRow key={rowIdx}>
+                  <TableRow key={String((item as { id?: string | number }).id || `row-${rowIdx}`)}>
                     {headerMap.map((col, colIdx) => {
                       const rawValue = getValueByPath(item, col.keyItem);
                       const renderedValue = col.parseItem ? col.parseItem(rawValue, item) : String(rawValue ?? '');
 
                       return (
-                        <TableCell key={colIdx}>
+                        <TableCell key={col.keyItem || `cell-${colIdx}`}>
                           {col.truncate ? (
                             <Tooltip>
                               <TooltipTrigger asChild>

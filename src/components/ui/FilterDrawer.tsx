@@ -117,39 +117,47 @@ export function FilterDrawer({
                 >
                   {field.label}
                 </label>
-                {field.type === 'dateRange' ? (
-                  <Controller
-                    control={control}
-                    name={field.name}
-                    render={({ field: { value, onChange } }) => (
-                      <DateRangePicker
-                        id={field.name}
-                        value={value as DateRange}
-                        onChange={onChange}
+                {(() => {
+                  if (field.type === 'dateRange') {
+                    return (
+                      <Controller
+                        control={control}
+                        name={field.name}
+                        render={({ field: { value, onChange } }) => (
+                          <DateRangePicker
+                            id={field.name}
+                            value={value as DateRange}
+                            onChange={onChange}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                ) : field.type === 'select' ? (
-                  <select
-                    id={field.name}
-                    {...register(field.name)}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-                  >
-                    <option value="">Todos</option>
-                    {field.options?.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    id={field.name}
-                    type={field.type as string}
-                    placeholder={field.placeholder}
-                    {...register(field.name)}
-                  />
-                )}
+                    );
+                  }
+                  if (field.type === 'select') {
+                    return (
+                      <select
+                        id={field.name}
+                        {...register(field.name)}
+                        className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                      >
+                        <option value="">Todos</option>
+                        {field.options?.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  }
+                  return (
+                    <Input
+                      id={field.name}
+                      type={field.type as string}
+                      placeholder={field.placeholder}
+                      {...register(field.name)}
+                    />
+                  );
+                })()}
               </div>
             ))}
           </div>

@@ -51,8 +51,8 @@ export function TopCreatorsChart({ data }: TopCreatorsChartProps) {
                 labelFormatter={(label) => userNamesMap.get(label) || label}
               />
               <Bar dataKey="count" name="Quant." fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={16}>
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${entry.userId}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>

@@ -51,7 +51,12 @@ export function DynamicSelect<T extends { id: string | number }>({
 
   if (JSON.stringify(value) !== JSON.stringify(prevValue)) {
     setPrevValue(value);
-    const ids = Array.isArray(value) ? value : value ? [value] : [];
+    let ids: string[] = [];
+    if (Array.isArray(value)) {
+      ids = value;
+    } else if (value) {
+      ids = [value];
+    }
     engine.setValue(ids);
   }
 
@@ -106,9 +111,10 @@ export function DynamicSelect<T extends { id: string | number }>({
     }
   };
 
-  const displayValue = multiple 
-    ? placeholder 
-    : state.selectedItems[0] ? getOptionLabel(state.selectedItems[0]) : placeholder;
+  let displayValue = placeholder;
+  if (!multiple && state.selectedItems[0]) {
+    displayValue = getOptionLabel(state.selectedItems[0]);
+  }
 
   const labelId = useId();
 
@@ -158,10 +164,11 @@ export function DynamicSelect<T extends { id: string | number }>({
               {state.items.map((item) => {
                 const isSelected = state.selectedItems.some(s => getOptionValue(s) === getOptionValue(item));
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={getOptionValue(item)}
                     className={cn(
-                      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 px-3 text-sm outline-none transition-colors",
+                      "relative flex w-full text-left cursor-pointer select-none items-center rounded-sm py-2 px-3 text-sm outline-none transition-colors",
                       isSelected ? "bg-indigo-50 text-indigo-900" : "hover:bg-gray-100 text-gray-700"
                     )}
                     onClick={() => handleSelect(item)}
@@ -170,7 +177,7 @@ export function DynamicSelect<T extends { id: string | number }>({
                       {getOptionLabel(item)}
                     </div>
                     {isSelected && <Check className="ml-2 h-4 w-4 text-indigo-600" />}
-                  </div>
+                  </button>
                 );
               })}
               

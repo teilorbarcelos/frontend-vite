@@ -267,4 +267,21 @@ describe('Pagination', () => {
     fireEvent.click(nextBtn);
     expect(onPageChange).not.toHaveBeenCalled();
   });
+  it('does not call onPageChange if page is out of bounds (coverage for isPageInRange)', () => {
+    const onPageChange = vi.fn();
+    render(
+      <Pagination
+        currentPage={1}
+        totalPages={0}
+        onPageChange={onPageChange}
+        pageSize={10}
+        totalItems={0}
+        onPageSizeChange={vi.fn()}
+      />
+    );
+    
+    const firstButton = screen.getByTitle('Primeira página');
+    fireEvent.click(firstButton);
+    expect(onPageChange).not.toHaveBeenCalled();
+  });
 });

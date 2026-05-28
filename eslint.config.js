@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import unusedImports from 'eslint-plugin-unused-imports'
 
 export default tseslint.config(
-  { ignores: ['dist', '**/__tests__/**', '**/*.test.ts', '**/*.test.tsx', 'src/test/**'] },
+  { ignores: ['dist', 'coverage', '.husky', '**/__tests__/**', '**/*.test.ts', '**/*.test.tsx', 'src/test/**'] },
   {
     extends: [
       js.configs.recommended,

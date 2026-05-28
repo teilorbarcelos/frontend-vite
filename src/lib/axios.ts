@@ -54,6 +54,61 @@ const clearSessionAndRedirect = () => {
   }
 };
 
+const handleRefreshToken = async (originalRequest: CustomAxiosRequestConfig) => {
+  if (isRefreshing) {
+    try {
+      const newToken = await new Promise<string>((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      });
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      }
+      return api(originalRequest);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  originalRequest._retry = true;
+  isRefreshing = true;
+
+  const refreshToken = localStorage.getItem('refreshToken');
+  
+  if (!refreshToken) {
+    clearSessionAndRedirect();
+    return Promise.reject(new Error('No refresh token available'));
+  }
+
+  try {
+    const res = await axios.post(`${CONFIG.API_URL}/v1/auth/refresh`, { refreshToken });
+    const { token: newToken, refreshToken: newRefreshToken } = res.data;
+    
+    localStorage.setItem('token', newToken);
+    if (newRefreshToken) {
+      localStorage.setItem('refreshToken', newRefreshToken);
+    }
+    
+    if (api.defaults && api.defaults.headers && api.defaults.headers.common) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+    }
+    
+    if (originalRequest.headers) {
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+    }
+    
+    processQueue(null, newToken);
+    return api(originalRequest);
+  } catch (refreshError) {
+    const err = refreshError as AxiosError;
+    console.error(`[Axios Interceptor] Refresh call failed:`, err.response?.status || err.message);
+    processQueue(err, null);
+    clearSessionAndRedirect();
+    return Promise.reject(err);
+  } finally {
+    isRefreshing = false;
+  }
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -69,60 +124,7 @@ api.interceptors.response.use(
                                url.includes('/v1/auth/password/change');
 
     if (error.response.status === 401 && !originalRequest._retry && !isPublicAuthRequest) {
-      
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token as string}`;
-            }
-            return api(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      const refreshToken = localStorage.getItem('refreshToken');
-      
-      if (refreshToken) {
-        try {
-          const res = await axios.post(`${CONFIG.API_URL}/v1/auth/refresh`, { refreshToken });
-          const { token, refreshToken: newRefreshToken } = res.data;
-          
-          localStorage.setItem('token', token);
-          if (newRefreshToken) {
-            localStorage.setItem('refreshToken', newRefreshToken);
-          }
-          
-          if (api.defaults && api.defaults.headers && api.defaults.headers.common) {
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          }
-          
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-          }
-          
-          processQueue(null, token);
-          return api(originalRequest);
-        } catch (refreshError) {
-          const err = refreshError as AxiosError;
-          console.error(`[Axios Interceptor] Refresh call failed:`, err.response?.status || err.message);
-          processQueue(err, null);
-          clearSessionAndRedirect();
-          return Promise.reject(err);
-        } finally {
-          isRefreshing = false;
-        }
-      } else {
-        clearSessionAndRedirect();
-        return Promise.reject(error);
-      }
+      return handleRefreshToken(originalRequest);
     }
     
     return Promise.reject(error);

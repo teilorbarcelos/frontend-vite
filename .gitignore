@@ -27,3 +27,4 @@ dist-ssr
 coverage
 *.lcov
 vitest.config.ts.timestamp-*
+.scannerwork

@@ -12,6 +12,46 @@ import { DayPicker } from "react-day-picker";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
+const CalendarDropdown = ({ value, onChange, options }: { value?: string | number | readonly string[], onChange?: React.ChangeEventHandler<HTMLSelectElement>, options?: { value: string | number, label: string }[] }) => {
+  const selected = options?.find((option) => option.value === value);
+  
+  const handleValueChange = (newValue: string) => {
+    const event = {
+      target: {
+        value: newValue,
+      },
+    } as React.ChangeEvent<HTMLSelectElement>;
+    onChange?.(event);
+  };
+
+  return (
+    <Select
+      value={value?.toString()}
+      onValueChange={handleValueChange}
+    >
+      <SelectTrigger 
+        className="h-8 w-auto border-none bg-transparent hover:bg-gray-100 focus:ring-0 font-bold text-sm capitalize px-2 gap-1 shadow-none"
+      >
+        <SelectValue>{selected?.label}</SelectValue>
+      </SelectTrigger>
+      <SelectContent 
+        className="max-h-[200px] overflow-y-auto min-w-[120px]"
+        position="popper"
+      >
+        {options?.map((option) => (
+          <SelectItem 
+            key={option.value.toString()} 
+            value={option.value.toString()}
+            className="capitalize"
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
+
 function Calendar({
   className,
   classNames,
@@ -56,45 +96,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Dropdown: ({ value, onChange, options }) => {
-          const selected = options?.find((option) => option.value === value);
-          
-          const handleValueChange = (newValue: string) => {
-            const event = {
-              target: {
-                value: newValue,
-              },
-            } as React.ChangeEvent<HTMLSelectElement>;
-            onChange?.(event);
-          };
-
-          return (
-            <Select
-              value={value?.toString()}
-              onValueChange={handleValueChange}
-            >
-              <SelectTrigger 
-                className="h-8 w-auto border-none bg-transparent hover:bg-gray-100 focus:ring-0 font-bold text-sm capitalize px-2 gap-1 shadow-none"
-              >
-                <SelectValue>{selected?.label}</SelectValue>
-              </SelectTrigger>
-              <SelectContent 
-                className="max-h-[200px] overflow-y-auto min-w-[120px]"
-                position="popper"
-              >
-                {options?.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
-                    value={option.value.toString()}
-                    className="capitalize"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          );
-        },
+        Dropdown: CalendarDropdown,
       }}
       {...props}
     />
